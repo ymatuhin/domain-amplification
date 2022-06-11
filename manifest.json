@@ -1,0 +1,31 @@
+{
+  "name": "Domain Amplification (dark/night mode for any website)",
+  "icons": {
+    "16": "16.png",
+    "48": "48.png",
+    "128": "128.png"
+  },
+  "action": {
+    "default_title": "Toggle"
+  },
+  "description": "",
+  "version": "1.0",
+  "incognito": "split",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["helpers.js", "store.js", "client.js"],
+      "css": ["client.css"],
+      "run_at": "document_start",
+      "all_frames": false,
+      "match_about_blank": true
+    }
+  ],
+  "permissions": ["storage", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "manifest_version": 3,
+  "author": "ymatuhin"
+}

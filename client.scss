@@ -1,0 +1,151 @@
+@layer base {
+  body {
+    background-color: hsl(0, 0%, 87%);
+    color: hsl(0, 0%, 13%);
+  }
+}
+html[data-da-status="init"] {
+  background-color: hsl(0, 0%, 13%);
+}
+html[data-da-status] {
+  color-scheme: dark;
+  filter: invert(0.94) hue-rotate(180deg);
+
+  // img {
+  //   filter: invert(1.08) hue-rotate(180deg) brightness(1.1);
+  // }
+
+  // overlay with BACKGROUND COLOR
+  // needed for safely change HTML bg color
+  // in case of overscrolling we don't see white
+  body::after {
+    content: "";
+    position: fixed;
+    top: -10%;
+    right: -10%;
+    left: -10%;
+    bottom: -10%;
+    z-index: -1;
+    background: inherit;
+  }
+}
+
+// find largest container, add data-attr
+// data-attr > [class]
+
+body [data-da-has-bg] {
+  filter: invert(0.03);
+}
+body [data-da-has-bg] [data-da-has-bg] {
+  filter: invert(0.03);
+}
+body [data-da-has-bg] [data-da-has-bg] [data-da-has-bg] {
+  filter: invert(0.03);
+}
+body [data-da-has-bg] [data-da-has-bg] [data-da-has-bg] [data-da-has-bg] {
+  filter: invert(0.03);
+}
+body
+  [data-da-has-bg]
+  [data-da-has-bg]
+  [data-da-has-bg]
+  [data-da-has-bg]
+  [data-da-has-bg] {
+  filter: invert(0.03);
+}
+
+// [data-da-level]:not(body) {
+//   filter: invert(0.07);
+// }
+
+// html[data-da-run] {
+//   color-scheme: dark;
+//   background: hsl(0, 0%, 13%);
+
+//   &::before {
+//     content: "";
+//     background-color: hsl(0, 0%, 87%);
+//     mix-blend-mode: difference;
+//     pointer-events: none;
+//     position: fixed;
+//     bottom: -50%;
+//     top: -50%;
+//     right: -10%;
+//     left: -10%;
+//     z-index: 10000;
+//   }
+
+//   &::after {
+//     // content: "";
+//     position: fixed;
+//     top: -10%;
+//     right: -10%;
+//     left: -10%;
+//     bottom: -10%;
+//     z-index: -1;
+//     background: inherit;
+//   }
+// }
+
+// @layer base {
+//   // html[data-da-run] body {
+//   //   background: hsl(0, 0%, 13%);
+//   //   color: hsl(0, 0%, 87%);
+//   // }
+//   html {
+//     color-scheme: dark;
+//   }
+// }
+
+// html[data-da-run] {
+//   position: relative;
+//   // filter: hue-rotate(180deg);
+
+//   [data-da-light]:not(body) {
+//     filter: invert(1);
+
+//     [data-da-light] {
+//       filter: initial;
+//     }
+//   }
+
+//   body::after {
+//     // content: "";
+//     position: fixed;
+//     top: -10%;
+//     right: -10%;
+//     left: -10%;
+//     bottom: -10%;
+//     z-index: -1;
+//     background: inherit;
+//   }
+
+//   // #{$filterSelector} {
+//   //   // filter: invert(1) hue-rotate(190deg) saturate(87%);
+//   //   mix-blend-mode: difference;
+
+//   //   #{$filterSelector} {
+//   //     filter: initial;
+//   //   }
+//   // }
+//   // #{$items} {
+//   //   filter: invert(1) hue-rotate(190deg) saturate(87%);
+
+//   //   #{$items} {
+//   //     filter: initial;
+//   //   }
+//   // }
+// }
+
+// // // TODO: update selectors
+// // $items: "header[data-da-dark], footer[data-da-dark], button, video, object, input[type=button], input[type=submit], [style*='url('],  video, :not(.logo) img, :not(.logo) svg, [data-da-dark]";
+
+// // form,
+// // fieldset,
+// // datalist,
+// // select,
+// // button,
+// // input,
+// // textarea {
+// //   color-scheme: light;
+// // }
