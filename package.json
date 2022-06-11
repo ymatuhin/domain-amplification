@@ -1,15 +1,19 @@
 {
-  "name": "dark-mode",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "vite-project",
+  "private": true,
+  "version": "0.0.0",
   "scripts": {
-    "dev": "sass --watch client.scss client.css"
+    "dev": "vite build --watch",
+    "build": "tsc && vite build --emptyOutDir",
+    "preview": "vite preview"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "devDependencies": {
+    "@types/chrome": "^0.0.190",
+    "sass": "^1.52.3",
+    "typescript": "^4.5.4",
+    "vite": "^2.9.9"
+  },
   "dependencies": {
-    "sass": "^1.52.3"
+    "svelte": "^3.48.0"
   }
 }

@@ -1,0 +1,42 @@
+@layer document-base {
+  html[data-domain-amplification-background="none"] {
+    background: hsl(0, 0%, 93%);
+    color: hsl(0, 0%, 7%);
+  }
+}
+
+html[data-domain-amplification="on"] {
+  color-scheme: dark;
+
+  filter: invert(0.96) hue-rotate(180deg);
+
+  [data-domain-amplification-root]:not(body) {
+    filter: invert(0.08);
+  }
+
+  $items: "img,svg,video,object,[style*='url(']";
+  $ignoreContainers: "main,section,article,aside,header,footer,nav";
+  $containers: "header,footer";
+
+  #{$items} {
+    filter: invert(1) hue-rotate(180deg) brightness(1.1);
+    #{$items} {
+      filter: initial;
+    }
+  }
+
+  #{$containers} {
+    filter: invert(1) hue-rotate(180deg) brightness(1.1);
+    #{$items} {
+      filter: initial;
+    }
+  }
+  #{$ignoreContainers} {
+    #{$containers} {
+      filter: initial;
+      #{$items} {
+        filter: invert(1) hue-rotate(180deg) brightness(1.1);
+      }
+    }
+  }
+}
