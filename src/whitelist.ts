@@ -1,4 +1,10 @@
 export const whitelist = [
+  "rutube.ru",
+  "ficbook.net",
+  "music.yandex.ru",
+  "duckduckgo.com",
+  "pornhub.com",
+  "xvideos.com",
   "gist.github.com",
   "github.com",
   "codepen.io",

@@ -1,42 +1,36 @@
 @layer document-base {
-  html[data-domain-amplification-background="none"] {
-    background: hsl(0, 0%, 93%);
-    color: hsl(0, 0%, 7%);
+  html[data-da="on"][data-da-background="none"] {
+    // must be defaults, can't change
+    background: #fff;
+    color: #000;
   }
 }
 
-html[data-domain-amplification="on"] {
+html[data-da="on"] {
   color-scheme: dark;
+  filter: invert(0.9) hue-rotate(180deg);
+}
 
-  filter: invert(0.96) hue-rotate(180deg);
+html[data-da="on"] body {
+  color-scheme: light;
 
-  [data-domain-amplification-root]:not(body) {
-    filter: invert(0.08);
-  }
+  // [data-da-root] {
+  //   filter: invert(0.08);
+  // }
 
-  $items: "img,svg,video,object,[style*='url(']";
-  $ignoreContainers: "main,section,article,aside,header,footer,nav";
-  $containers: "header,footer";
+  $itemsToInvert: "img,svg,video,object,\
+    [data-da-bg-color=dark],\
+    [data-da-bg-color=light][data-da-size=xs],\
+    [data-da-bg-color=medium][data-da-size=xs],\
+    [data-da-bg-image][data-da-size=xs],\
+    [style*='url(']:not([data-da-bg-image])\
+  ";
 
-  #{$items} {
+  #{$itemsToInvert} {
     filter: invert(1) hue-rotate(180deg) brightness(1.1);
-    #{$items} {
-      filter: initial;
-    }
-  }
 
-  #{$containers} {
-    filter: invert(1) hue-rotate(180deg) brightness(1.1);
-    #{$items} {
+    #{$itemsToInvert} {
       filter: initial;
-    }
-  }
-  #{$ignoreContainers} {
-    #{$containers} {
-      filter: initial;
-      #{$items} {
-        filter: invert(1) hue-rotate(180deg) brightness(1.1);
-      }
     }
   }
 }
