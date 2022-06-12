@@ -1,36 +1,67 @@
 @layer document-base {
+  html {
+    color-scheme: dark;
+  }
   html[data-da="on"][data-da-background="none"] {
     // must be defaults, can't change
     background: #fff;
     color: #000;
   }
+  html[data-da="on"] {
+    // have to set because of color-scheme
+    // changing default colors
+    input,
+    select,
+    button,
+    textarea {
+      background: #fff;
+      color: #000;
+    }
+
+    // if no color set on body, text can be invisible
+    body[data-da-bg-color="light"] {
+      color: #000;
+    }
+  }
 }
 
 html[data-da="on"] {
-  color-scheme: dark;
-  filter: invert(0.9) hue-rotate(180deg);
+  filter: invert(0.9) hue-rotate(180deg) !important;
 }
 
 html[data-da="on"] body {
-  color-scheme: light;
-
-  // [data-da-root] {
-  //   filter: invert(0.08);
-  // }
-
-  $itemsToInvert: "img,svg,video,object,\
-    [data-da-bg-color=dark],\
-    [data-da-bg-color=light][data-da-size=xs],\
-    [data-da-bg-color=medium][data-da-size=xs],\
-    [data-da-bg-image][data-da-size=xs],\
-    [style*='url(']:not([data-da-bg-image])\
+  $socialParents: "[href*='twitter.com'],\
+  [href*='facebook.com'],\
+  [href*='evernote.com'],\
+  [href*='getpocket.com'],\
+  [href*='instagram.com'],\
+  [href*='vk.com'],\
+  [href*='telegram.me'],\
+  [href*='t.me'],\
   ";
-
+  $itemsToInvert: "img,video,object,iframe,\
+    [data-da-bg-color=dark][data-da-size=sm],\
+    [data-da-bg-color=dark][data-da-size=lg],\
+    [data-da-bg-color=medium][data-da-size=xs],\
+    [data-da-bg-color=medium][data-da-size=sm],\
+    [id*=yandex_rtb],\
+    [style*='url('],\
+  ";
   #{$itemsToInvert} {
-    filter: invert(1) hue-rotate(180deg) brightness(1.1);
+    filter: invert(1) hue-rotate(180deg) brightness(1.1) !important;
 
     #{$itemsToInvert} {
-      filter: initial;
+      filter: initial !important;
+    }
+  }
+  #{$socialParents} {
+    filter: invert(1) hue-rotate(180deg) brightness(1.1) !important;
+
+    #{$itemsToInvert} {
+      filter: initial !important;
+    }
+    #{$socialParents} {
+      filter: initial !important;
     }
   }
 }

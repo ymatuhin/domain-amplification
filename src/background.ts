@@ -1,10 +1,11 @@
-chrome.runtime.onMessage.addListener(
-  (status, { tab }) => tab?.id && setBadge(tab.id, status),
-);
+// chrome.runtime.onMessage.addListener(
+//   (status, { tab }) => tab?.id && setBadge(tab.id, status),
+// );
 
-chrome.action.onClicked.addListener(
-  ({ id }) => id && chrome.tabs.sendMessage(id, "toggle"),
-);
+chrome.action.onClicked.addListener(({ id }) => {
+  if (!id) return;
+  chrome.tabs.sendMessage(id, "toggle", (enabled) => setBadge(id, enabled));
+});
 
 function setBadge(tabId: number, enabled: boolean) {
   chrome.action.setBadgeBackgroundColor({

@@ -16,19 +16,18 @@ export function observeChanges(callback: Function) {
   runQueue();
 
   function runQueue() {
-    // const
-    const now = queue.slice(0, 10);
+    const now = queue.slice(0, 50);
     if (now.length) {
-      queue = queue.slice(10);
+      queue = queue.slice(50);
       now.forEach(($item) => callback($item));
     }
-    return requestAnimationFrame(runQueue);
+    return setTimeout(runQueue);
   }
 
   function getTargets(mutation: MutationRecord) {
     if (
       mutation.type === "attributes" &&
-      mutation.attributeName?.includes("data-da-")
+      !mutation.attributeName?.includes("data-da-")
     ) {
       return [mutation.target];
     } else {

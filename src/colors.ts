@@ -38,3 +38,10 @@ export function rgbToHsl(r: number, g: number, b: number) {
   l = Math.round(l * 100);
   return { h, s, l };
 }
+
+export function getBgLightnessStatus(styles: CSSStyleDeclaration) {
+  const { r, g, b, a } = rgbaAsArray(styles.backgroundColor);
+  if (a < 0.8) return null;
+  const { l } = rgbToHsl(r, g, b);
+  return l > 55 ? "light" : l < 35 ? "dark" : "medium";
+}
