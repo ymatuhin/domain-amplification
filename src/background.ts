@@ -1,6 +1,6 @@
-// chrome.runtime.onMessage.addListener(
-//   (status, { tab }) => tab?.id && setBadge(tab.id, status),
-// );
+chrome.runtime.onMessage.addListener((status, { tab }) => {
+  tab?.id && setBadge(tab.id, status);
+});
 
 chrome.action.onClicked.addListener(({ id }) => {
   if (!id) return;
@@ -8,11 +8,12 @@ chrome.action.onClicked.addListener(({ id }) => {
 });
 
 function setBadge(tabId: number, enabled: boolean) {
-  chrome.action.setBadgeBackgroundColor({
-    color: enabled ? "#46c365" : "#f7768e",
-  });
-  chrome.action.setBadgeText({
+  chrome.action.setIcon({
     tabId,
-    text: enabled ? "On" : "Off",
+    path: {
+      16: enabled ? "dark/16.png" : "light/16.png",
+      48: enabled ? "dark/48.png" : "light/48.png",
+      128: enabled ? "dark/128.png" : "light/128.png",
+    },
   });
 }

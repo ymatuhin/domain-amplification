@@ -1,35 +1,64 @@
-@layer document-base {
-  html {
-    color-scheme: dark;
-  }
-  html[data-da="on"][data-da-background="none"] {
-    // must be defaults, can't change
-    background: #fff;
-    color: #000;
-  }
+// needed for detecting system color changes
+[data-da-scheme="dark"] {
+  color-scheme: dark !important;
+}
+[data-da-scheme="light"] {
+  color-scheme: light !important;
+}
+// apply color scheme only when not detecting
+html[data-da="on"]:not([data-da-scheme]) {
+  color-scheme: dark !important;
+}
+
+@layer da-base {
   html[data-da="on"] {
-    // have to set because of color-scheme
-    // changing default colors
+    //? Maybe add this later for document background color
+    //? when overscrolling from trackpad on mac
+    // &[data-da-system-bg="html"] {
+    //   background: hsl(0deg 0% 10%);
+
+    //   body::before {
+    //     content: "";
+    //     position: fixed;
+    //     left: 0;
+    //     right: 0;
+    //     top: 0;
+    //     bottom: 0;
+    //     background: inherit;
+    //     z-index: -1;
+    //   }
+    // }
+
+    // data-da-system-color="html"
+    &[data-da-system-color="both"] body,
+    &[data-da-system-color="body"] body {
+      color: #000;
+    }
+
+    &[data-da-system-bg="both"] body,
+    &[data-da-system-bg="body"] body {
+      background: #fff;
+    }
+
+    // have to reset because color-scheme=dark changes some input colors
+    // https://trac.webkit.org/browser/trunk/Source/WebCore/css/html.css
     input,
     select,
     button,
     textarea {
+      color: #000;
       background: #fff;
-      color: #000;
-    }
-
-    // if no color set on body, text can be invisible
-    body[data-da-bg-color="light"] {
-      color: #000;
     }
   }
 }
 
 html[data-da="on"] {
+  // 0.9 for lighter grayish
   filter: invert(0.9) hue-rotate(180deg) !important;
 }
 
 html[data-da="on"] body {
+  // links to social media (usually icons)
   $socialParents: "[href*='twitter.com'],\
   [href*='facebook.com'],\
   [href*='evernote.com'],\
@@ -41,26 +70,19 @@ html[data-da="on"] body {
   ";
   $itemsToInvert: "img,video,object,iframe,\
     [data-da-bg-color=dark][data-da-size=sm],\
+    [data-da-bg-color=dark][data-da-size=md],\
     [data-da-bg-color=dark][data-da-size=lg],\
     [data-da-bg-color=medium][data-da-size=xs],\
     [data-da-bg-color=medium][data-da-size=sm],\
     [id*=yandex_rtb],\
     [style*='url('],\
+    [data-da-emoji],\
   ";
-  #{$itemsToInvert} {
-    filter: invert(1) hue-rotate(180deg) brightness(1.1) !important;
 
-    #{$itemsToInvert} {
-      filter: initial !important;
-    }
-  }
+  #{$itemsToInvert},
   #{$socialParents} {
     filter: invert(1) hue-rotate(180deg) brightness(1.1) !important;
-
-    #{$itemsToInvert} {
-      filter: initial !important;
-    }
-    #{$socialParents} {
+    * {
       filter: initial !important;
     }
   }

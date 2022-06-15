@@ -1,4 +1,4 @@
-import { writable, get, derived } from "svelte/store";
+import { writable, derived, get } from "svelte/store";
 import { chromeStoreLense } from "./chrome-store-lense";
 import { whitelist } from "./whitelist";
 
@@ -7,25 +7,25 @@ const isExcluded = whitelist.includes(host);
 const isMaybeExcluded = whitelist.some((item) => host.endsWith(item));
 const chromeStore = chromeStoreLense(host);
 
-// chrome.storage.sync.clear();
+export const stored = writable<null | boolean>(null);
+export const documentLight = writable<null | boolean>(null);
+export const enabled = derived(
+  [stored, documentLight],
+  ([stored, documentLight]) => {
+    if (stored !== null) return stored;
+    if (isExcluded) return false;
+    if (documentLight !== null) return documentLight;
+    return isMaybeExcluded ? false : true;
+  },
+);
 
-type Enabled = null | boolean;
-const stored = writable<Enabled>(null);
-export const documentLight = writable<Enabled>(null);
-const enabled = derived([stored, documentLight], ([stored, documentLight]) => {
-  console.info(`🔥 stored`, stored);
-  if (stored !== null) return stored;
-  if (isExcluded) return false;
-  if (documentLight !== null) return documentLight;
-  return isMaybeExcluded ? false : true;
-});
 export const status = derived(enabled, (value) => {
   if (value === null) return "initial";
   return value ? "on" : "off";
 });
 
 chromeStore.get().then((value: any) => {
-  if (value !== null) stored.set(value);
+  if (typeof value === "boolean") stored.set(value);
 });
 
 chrome.runtime.onMessage.addListener(async (message, _, respond) => {
@@ -35,8 +35,12 @@ chrome.runtime.onMessage.addListener(async (message, _, respond) => {
   respond(!prev);
 });
 
-stored.subscribe((newValue) => {
+enabled.subscribe((newValue) => {
   if (newValue === null) return;
   chrome.runtime.sendMessage(newValue);
+});
+
+stored.subscribe((newValue) => {
+  if (newValue === null) return;
   chromeStore.set(newValue);
 });
