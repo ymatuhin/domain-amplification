@@ -1,46 +1,25 @@
-import { writable, derived, get } from "svelte/store";
-import { chromeStoreLense } from "./chrome-store-lense";
 import { whitelist } from "./whitelist";
 
-const host = location.hostname.replace("www.", "");
-const isExcluded = whitelist.includes(host);
-const isMaybeExcluded = whitelist.some((item) => host.endsWith(item));
-const chromeStore = chromeStoreLense(host);
+export class Status {
+  host = location.hostname.replace("www.", "");
+  isExcluded = whitelist.includes(this.host);
+  isMaybeExcluded = whitelist.some((item) => this.host.endsWith(item));
+  stored: boolean | null = null;
+  isLight: boolean | null = null;
 
-export const stored = writable<null | boolean>(null);
-export const documentLight = writable<null | boolean>(null);
-export const enabled = derived(
-  [stored, documentLight],
-  ([stored, documentLight]) => {
-    if (stored !== null) return stored;
-    if (isExcluded) return false;
-    if (documentLight !== null) return documentLight;
-    return isMaybeExcluded ? false : true;
-  },
-);
+  constructor(stored: boolean | null, isLight: boolean) {
+    this.stored = stored;
+    this.isLight = isLight;
+  }
 
-export const status = derived(enabled, (value) => {
-  if (value === null) return "initial";
-  return value ? "on" : "off";
-});
+  get value() {
+    if (typeof this.stored === "boolean") return this.stored;
+    if (this.isExcluded) return false;
+    if (typeof this.isLight === "boolean") return this.isLight;
+    return this.isMaybeExcluded ? false : true;
+  }
 
-chromeStore.get().then((value: any) => {
-  if (typeof value === "boolean") stored.set(value);
-});
-
-chrome.runtime.onMessage.addListener(async (message, _, respond) => {
-  if (message !== "toggle") return;
-  const prev = get(enabled);
-  stored.set(!prev);
-  respond(!prev);
-});
-
-enabled.subscribe((newValue) => {
-  if (newValue === null) return;
-  chrome.runtime.sendMessage(newValue);
-});
-
-stored.subscribe((newValue) => {
-  if (newValue === null) return;
-  chromeStore.set(newValue);
-});
+  toggle() {
+    this.stored = !this.stored;
+  }
+}

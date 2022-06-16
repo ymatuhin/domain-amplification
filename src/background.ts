@@ -1,10 +1,11 @@
 chrome.runtime.onMessage.addListener((status, { tab }) => {
-  tab?.id && setBadge(tab.id, status);
+  if (!tab?.id) return;
+  setBadge(tab.id, status);
 });
 
 chrome.action.onClicked.addListener(({ id }) => {
   if (!id) return;
-  chrome.tabs.sendMessage(id, "toggle", (enabled) => setBadge(id, enabled));
+  chrome.tabs.sendMessage(id, "toggle");
 });
 
 function setBadge(tabId: number, enabled: boolean) {
@@ -12,7 +13,9 @@ function setBadge(tabId: number, enabled: boolean) {
     tabId,
     path: {
       16: enabled ? "dark/16.png" : "light/16.png",
+      32: enabled ? "dark/32.png" : "light/32.png",
       48: enabled ? "dark/48.png" : "light/48.png",
+      64: enabled ? "dark/64.png" : "light/64.png",
       128: enabled ? "dark/128.png" : "light/128.png",
     },
   });

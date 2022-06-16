@@ -1,50 +1,120 @@
-import { status, documentLight } from "./status";
+import { Status } from "./status";
 import { getBgLightnessStatus, rgbaAsArray } from "./colors";
-import { watchAll, isOkElement } from "./watch-all";
-import { Queue } from "./queue";
+import { bodyWaiter } from "./body-waiter";
+import { get, set } from "./chrome-store";
+import { isInViewport } from "./in-viewport";
+import { isVisible } from "./is-visible";
 
-const queue = new Queue();
+const CHUNK_SIZE = 32;
 
-watchAll(($item: Node) => {
-  if ($item instanceof HTMLElement && $item?.tagName === "BODY") {
-    passDocumentLightnessToStatus($item);
-    setBgAttribute($item);
+Promise.all([get<boolean | null>(), bodyWaiter()]).then(init);
+
+function init([storedStatus]: [boolean | null, void]) {
+  const isLight = checkIsDocumentLight(document.body);
+  const status = new Status(storedStatus, isLight);
+
+  if (status.value) {
+    runExtension(status);
+    chrome.runtime.sendMessage(status.value);
   }
-  if ($item instanceof HTMLElement) setElementAttributes($item as HTMLElement);
-  if ($item instanceof Text) queue.addTask(() => wrapEmoji($item));
-});
 
-status.subscribe((currentStatus) => {
-  document.documentElement.dataset.da = currentStatus;
-});
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message !== "toggle") return;
+    status.toggle();
+    set(status.value);
+    chrome.runtime.sendMessage(status.value);
+    runExtension(status);
+  });
+}
 
-const emojiRx = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
-function wrapEmoji($item: Node) {
-  const found = $item.textContent && emojiRx.test($item.textContent);
-  if (!found) return;
+function runExtension(status: Status) {
+  document.documentElement.dataset.da = status.value ? "on" : "off";
+  setBgAttribute(document.body);
 
-  const parent = $item.parentElement as HTMLElement;
-  if (!isOkElement(parent)) return;
-  if (parent?.hasAttribute("data-da-emoji")) return;
+  if (document.readyState !== "loading") handleElements();
+  document.addEventListener("readystatechange", handleElements);
+}
 
-  const parentHasSameText = parent.textContent === $item.textContent;
-  if (parentHasSameText) {
-    parent.dataset.daEmoji = "";
-  } else {
-    let html = parent.innerHTML;
-    const emojis = [...new Set(html.match(emojiRx) ?? [])];
-    emojis.forEach((emoji) => {
-      html = html.replaceAll(emoji, `<span data-da-emoji>${emoji}</span>`);
-    });
-    parent.innerHTML = html;
-  }
+function handleElements() {
+  const selector =
+    "body *:not(svg *,script,style,link,template,pre *,[contenteditable] > *)";
+  const $all = Array.from(document.querySelectorAll(selector)).filter(
+    ($element) => $element instanceof HTMLElement,
+  ) as HTMLElement[];
+  const $visible = $all.filter(isVisible);
+  const $critical = [document.body, ...$visible.filter(isInViewport)];
+  const $rest = $visible.filter(($element) => !$critical.includes($element));
+
+  handleElementsQueue($critical, true);
+  requestIdleCallback(() => handleElementsQueue($rest, false));
+}
+
+function handleElementsQueue($elements: HTMLElement[], critical: boolean) {
+  const $current = $elements.splice(0, CHUNK_SIZE);
+  if ($current.length === 0) return;
+
+  $current.forEach(handleElement);
+
+  if (critical) handleElementsQueue($elements, critical);
+  else requestIdleCallback(() => handleElementsQueue($elements, critical));
+}
+
+function handleElement($element: HTMLElement) {
+  setElementAttributes($element);
+}
+
+// const emojiRx = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
+// function wrapEmoji($item: Node) {
+//   const found = $item.textContent && emojiRx.test($item.textContent);
+//   if (!found) return;
+
+//   const parent = $item.parentElement as HTMLElement;
+//   if (!parent || parent.hasAttribute("data-da-emoji")) return;
+
+//   const parentHasSameText = parent.textContent === $item.textContent;
+//   if (parentHasSameText) {
+//     parent.dataset.daEmoji = "";
+//   } else {
+//     let html = parent.innerHTML;
+//     const emojis = [...new Set(html.match(emojiRx) ?? [])];
+//     emojis.forEach((emoji) => {
+//       html = html.replaceAll(emoji, `<span data-da-emoji>${emoji}</span>`);
+//     });
+//     parent.innerHTML = html;
+//   }
+// }
+
+function checkIsDocumentLight(body: HTMLElement) {
+  const htmlStyles = getComputedStyle(document.documentElement);
+  const bodyStyles = getComputedStyle(body);
+  const htmlLightness = getBgLightnessStatus(htmlStyles);
+  const bodyLightness = getBgLightnessStatus(bodyStyles);
+  if (bodyLightness) return bodyLightness === "light";
+  else if (htmlLightness) return htmlLightness === "light";
+  return true;
+}
+
+function setElementAttributes($element: HTMLElement) {
+  const styles = getComputedStyle($element);
+  const hasBgColor =
+    styles.backgroundColor && rgbaAsArray(styles.backgroundColor).a > 0.8;
+
+  if (!hasBgColor) return;
+  setSizeAttribute($element);
+  setColorAttribute($element, styles);
+}
+
+function setColorAttribute(
+  $element: HTMLElement,
+  styles = getComputedStyle($element),
+) {
+  const status = getBgLightnessStatus(styles);
+  if (status) $element.dataset.daBgColor = status;
 }
 
 function setBgAttribute(body: HTMLElement) {
   const html = document.documentElement;
 
-  // delete before adding so they won't
-  // affect the final result
   delete html.dataset.daSystemColor;
   delete html.dataset.daSystemBg;
 
@@ -65,45 +135,8 @@ function setBgAttribute(body: HTMLElement) {
   else html.dataset.daSystemBg = "none";
 }
 
-function passDocumentLightnessToStatus(body: HTMLElement) {
-  const htmlStyles = getComputedStyle(document.documentElement);
-  const bodyStyles = getComputedStyle(body);
-  const htmlLightness = getBgLightnessStatus(htmlStyles);
-  const bodyLightness = getBgLightnessStatus(bodyStyles);
-  if (bodyLightness) documentLight.set(bodyLightness === "light");
-  else if (htmlLightness) documentLight.set(htmlLightness === "light");
-}
-
-function setElementAttributes($element: HTMLElement) {
-  // remove previously added attributes
-  delete $element.dataset.daSize;
-  delete $element.dataset.daBgColor;
-
-  const styles = getComputedStyle($element);
-  const hasBgColor =
-    styles.backgroundColor && rgbaAsArray(styles.backgroundColor).a > 0.8;
-
-  if (hasBgColor) {
-    const rect = $element.getBoundingClientRect();
-    const inViewport = isPartInViewport(rect);
-    const method = inViewport ? "addMicroTask" : "addTask";
-
-    queue[method](() => {
-      setSizeAttribute($element, rect);
-      setColorAttribute($element, styles);
-    });
-  }
-}
-
-function setColorAttribute(
-  $element: HTMLElement,
-  styles = getComputedStyle($element),
-) {
-  const status = getBgLightnessStatus(styles);
-  if (status) $element.dataset.daBgColor = status;
-}
-
-function setSizeAttribute($element: HTMLElement, rect: DOMRect) {
+function setSizeAttribute($element: HTMLElement) {
+  const rect = $element.getBoundingClientRect();
   const area = rect.width * rect.height;
   if (!area) return;
   const windowArea = window.outerHeight * window.outerHeight;
@@ -113,18 +146,6 @@ function setSizeAttribute($element: HTMLElement, rect: DOMRect) {
   else if (spacePercent < 4) $element.dataset.daSize = "sm";
   else if (spacePercent < 12) $element.dataset.daSize = "md";
   else $element.dataset.daSize = "lg";
-}
-
-function isPartInViewport(rect: DOMRect) {
-  const vpHeight = window.innerHeight || document.documentElement.clientHeight;
-  const vpWidth = window.innerWidth || document.documentElement.clientWidth;
-
-  return (
-    rect.top >= -rect.height &&
-    rect.left >= -rect.width &&
-    rect.bottom <= vpHeight + rect.height &&
-    rect.right <= vpWidth + rect.width
-  );
 }
 
 function isSystemTextColor($element: HTMLElement) {

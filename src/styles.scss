@@ -1,35 +1,27 @@
-// needed for detecting system color changes
-[data-da-scheme="dark"] {
-  color-scheme: dark !important;
-}
-[data-da-scheme="light"] {
-  color-scheme: light !important;
-}
-// apply color scheme only when not detecting
-html[data-da="on"]:not([data-da-scheme]) {
-  color-scheme: dark !important;
-}
+$socialParents: "\
+  [href*='twitter.com'],\
+  [href*='facebook.com'],\
+  [href*='evernote.com'],\
+  [href*='getpocket.com'],\
+  [href*='instagram.com'],\
+  [href*='vk.com'],\
+  [href*='telegram.me'],\
+  [href*='t.me'],\
+";
+$itemsToInvert: "\
+  img,video,object,iframe,\
+  [data-da-bg-color=dark][data-da-size=sm],\
+  [data-da-bg-color=dark][data-da-size=md],\
+  [data-da-bg-color=dark][data-da-size=lg],\
+  [data-da-bg-color=medium][data-da-size=xs],\
+  [data-da-bg-color=medium][data-da-size=sm],\
+  [id*=yandex_rtb],\
+  [style*='url('],\
+  [data-da-emoji],\
+";
 
 @layer da-base {
   html[data-da="on"] {
-    //? Maybe add this later for document background color
-    //? when overscrolling from trackpad on mac
-    // &[data-da-system-bg="html"] {
-    //   background: hsl(0deg 0% 10%);
-
-    //   body::before {
-    //     content: "";
-    //     position: fixed;
-    //     left: 0;
-    //     right: 0;
-    //     top: 0;
-    //     bottom: 0;
-    //     background: inherit;
-    //     z-index: -1;
-    //   }
-    // }
-
-    // data-da-system-color="html"
     &[data-da-system-color="both"] body,
     &[data-da-system-color="body"] body {
       color: #000;
@@ -55,35 +47,30 @@ html[data-da="on"]:not([data-da-scheme]) {
 html[data-da="on"] {
   // 0.9 for lighter grayish
   filter: invert(0.9) hue-rotate(180deg) !important;
-}
 
-html[data-da="on"] body {
-  // links to social media (usually icons)
-  $socialParents: "[href*='twitter.com'],\
-  [href*='facebook.com'],\
-  [href*='evernote.com'],\
-  [href*='getpocket.com'],\
-  [href*='instagram.com'],\
-  [href*='vk.com'],\
-  [href*='telegram.me'],\
-  [href*='t.me'],\
-  ";
-  $itemsToInvert: "img,video,object,iframe,\
-    [data-da-bg-color=dark][data-da-size=sm],\
-    [data-da-bg-color=dark][data-da-size=md],\
-    [data-da-bg-color=dark][data-da-size=lg],\
-    [data-da-bg-color=medium][data-da-size=xs],\
-    [data-da-bg-color=medium][data-da-size=sm],\
-    [id*=yandex_rtb],\
-    [style*='url('],\
-    [data-da-emoji],\
-  ";
+  body {
+    // links to social media (usually icons)
 
-  #{$itemsToInvert},
-  #{$socialParents} {
-    filter: invert(1) hue-rotate(180deg) brightness(1.1) !important;
-    * {
-      filter: initial !important;
+    #{$itemsToInvert},
+    #{$socialParents} {
+      filter: invert(1) hue-rotate(180deg) brightness(1.1) !important;
+      * {
+        filter: initial !important;
+      }
     }
   }
+}
+
+// needed for detecting system color changes
+[data-da-scheme="dark"] {
+  color-scheme: dark !important;
+}
+[data-da-scheme="light"] {
+  color-scheme: light !important;
+}
+
+// apply color scheme only when not detecting
+html[data-da="on"]:not([data-da-scheme]),
+html[data-da="on"]:not([data-da-scheme]) body {
+  color-scheme: dark !important;
 }
