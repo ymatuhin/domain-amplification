@@ -1,5 +1,3 @@
-// import { ElementsQueue } from "./elements-queue";
-
 export function bodyWaiter() {
   return new Promise<void>((resolve) => {
     const observerParams = {

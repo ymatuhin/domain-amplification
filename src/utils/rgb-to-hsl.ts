@@ -1,13 +1,3 @@
-export function rgbaAsArray(rgbString: string) {
-  const [r, g, b, a = 1] = rgbString
-    .replace(/ /g, "")
-    .replace(/rgba?/g, "")
-    .replace(/[()]/g, "")
-    .split(",")
-    .map((i) => +i);
-  return { r, g, b, a };
-}
-
 export function rgbToHsl(r: number, g: number, b: number) {
   (r /= 255), (g /= 255), (b /= 255);
   var max = Math.max(r, g, b),
@@ -37,11 +27,4 @@ export function rgbToHsl(r: number, g: number, b: number) {
   }
   l = Math.round(l * 100);
   return { h, s, l };
-}
-
-export function getBgLightnessStatus(styles: CSSStyleDeclaration) {
-  const { r, g, b, a } = rgbaAsArray(styles.backgroundColor);
-  if (a < 0.8) return null;
-  const { l } = rgbToHsl(r, g, b);
-  return l > 55 ? "light" : l < 35 ? "dark" : "medium";
 }
