@@ -1,5 +1,5 @@
-import bgColorHandler from "./bg-color";
+import backColorHandler from "./back-color";
 import emojiHandler from "./emoji";
 import sizeHandler from "./size";
 
-export const handlers = [bgColorHandler, emojiHandler, sizeHandler];
+export const handlers = [backColorHandler, emojiHandler, sizeHandler];

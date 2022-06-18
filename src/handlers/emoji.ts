@@ -1,25 +1,27 @@
 const emojiRx = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
 
-export default (htmlElement: HTMLElement) => {
+export default function handleEmoji(htmlElement: HTMLElement) {
   const nodes = Array.from(htmlElement.childNodes);
   nodes.forEach((node) => {
+    if (node instanceof HTMLElement) return handleEmoji(node);
     if (!(node instanceof Text)) return;
+    if (!htmlElement || htmlElement.hasAttribute("data-da-emoji")) return;
 
-    const hasEmoji = emojiRx.test(node.textContent ?? "");
+    const match = (node.textContent ?? "").match(emojiRx) ?? [];
+    const hasEmoji = match.length > 0;
     if (!hasEmoji) return;
 
-    if (!htmlElement || htmlElement.hasAttribute("data-da-emoji")) return;
-    const parentHasSameText = htmlElement.textContent === node.textContent;
+    const parentHasOnlyOneEmoji =
+      match.length === 1 && htmlElement.textContent === match[0];
 
-    if (parentHasSameText) {
+    if (parentHasOnlyOneEmoji) {
       htmlElement.dataset.daEmoji = "";
     } else {
       let html = htmlElement.innerHTML;
-      const emojis = [...new Set(html.match(emojiRx) ?? [])];
-      emojis.forEach((emoji) => {
+      [...new Set(match)].forEach((emoji) => {
         html = html.replaceAll(emoji, `<span data-da-emoji>${emoji}</span>`);
       });
       htmlElement.innerHTML = html;
     }
   });
-};
+}

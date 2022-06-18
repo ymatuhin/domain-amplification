@@ -14,9 +14,9 @@ export const SELECTOR =
   "body *:not(svg *,script,style,link,template,pre *,[contenteditable] > *)";
 
 const promises = [chromeStore.get<boolean | null>(), bodyWaiter()];
-Promise.all(promises).then(([storedStatus]) => {
-  new App(storedStatus as boolean | null).init();
-});
+Promise.all(promises).then(
+  ([storedStatus]) => new App(storedStatus as boolean | null),
+);
 
 class App {
   status: Status;
@@ -26,9 +26,11 @@ class App {
   constructor(storedStatus: boolean | null) {
     const isLight = checkIsDocumentLight(document.body);
     this.status = new Status(storedStatus, isLight);
+    this.init();
   }
 
   init() {
+    chrome.runtime.sendMessage(this.status.value);
     this.addListeners();
     this.setRootAttributes();
     this.run();
@@ -49,7 +51,6 @@ class App {
 
   runObserver() {
     observeChanges((elements) => {
-      console.info(`🔥 observeChanges`, elements);
       elements.forEach(this.viewportQueue.add, this.viewportQueue);
       this.handleQueues();
     });
@@ -59,6 +60,7 @@ class App {
     this.status.toggle();
     chromeStore.set(this.status.value);
     chrome.runtime.sendMessage(this.status.value);
+    this.setRootAttributes();
     this.run();
   }
 
@@ -66,8 +68,8 @@ class App {
     const { documentElement: html } = document;
     html.dataset.da = this.status.value ? "on" : "off";
 
-    delete html.dataset.daSystemColor;
-    delete html.dataset.daSystemBg;
+    delete html.dataset.daTextColor;
+    delete html.dataset.daBackColor;
 
     html.dataset.daTextColor = getRootTextColorStatus();
     html.dataset.daBackColor = getRootBackColorStatus();
@@ -102,7 +104,6 @@ class App {
   }
 
   handleQueues(): void {
-    console.info(`🔥 handleQueues`);
     this.viewportQueue.forEach((htmlElement) => {
       this.handleElement(htmlElement);
       this.viewportQueue.delete(htmlElement);
