@@ -1,5 +1,6 @@
 chrome.runtime.onMessage.addListener((status, { tab }) => {
   if (!tab?.id) return;
+  console.info(`🔥 status`, status);
   setBadge(tab.id, status);
 });
 

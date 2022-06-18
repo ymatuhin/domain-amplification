@@ -1,13 +1,3 @@
-$socialParents: "\
-  [href*='twitter.com'],\
-  [href*='facebook.com'],\
-  [href*='evernote.com'],\
-  [href*='getpocket.com'],\
-  [href*='instagram.com'],\
-  [href*='vk.com'],\
-  [href*='telegram.me'],\
-  [href*='t.me'],\
-";
 $itemsToInvert: "\
   img,video,object,iframe,\
   [data-da-bg-color=dark][data-da-size=sm],\
@@ -51,12 +41,15 @@ html[data-da="on"] {
   body {
     // links to social media (usually icons)
 
-    #{$itemsToInvert},
-    #{$socialParents} {
+    #{$itemsToInvert} {
       filter: invert(1) hue-rotate(180deg) brightness(1.1) !important;
       * {
         filter: initial !important;
       }
+    }
+
+    :fullscreen {
+      filter: initial !important;
     }
   }
 }

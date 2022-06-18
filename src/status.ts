@@ -20,6 +20,6 @@ export class Status {
   }
 
   toggle() {
-    this.stored = !this.stored;
+    this.stored = !this.value;
   }
 }
