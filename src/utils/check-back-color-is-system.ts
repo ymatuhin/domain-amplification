@@ -1,6 +1,6 @@
 import { rgbaToObject } from "./rgba-to-object";
 
-export function isSystemBgColor($element: HTMLElement) {
+export function checkBackColorIsSystem($element: HTMLElement) {
   const { backgroundColor } = getComputedStyle($element);
   if (!backgroundColor) return true;
   const { r, g, b, a } = rgbaToObject(backgroundColor);

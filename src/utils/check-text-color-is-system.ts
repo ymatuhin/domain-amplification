@@ -1,4 +1,4 @@
-export function isSystemTextColor($element: HTMLElement) {
+export function checkTextColorIsSystem($element: HTMLElement) {
   document.documentElement.dataset.daScheme = "light";
   $element.dataset.daScheme = "light";
   const { color: prevColor } = getComputedStyle($element);

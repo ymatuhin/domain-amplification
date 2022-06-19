@@ -1,5 +1,5 @@
 $itemsToInvert: "\
-  img,video,object,iframe,canvas,\
+  img,video,object,embed,iframe,canvas,\
   [data-da-bg-color=dark][data-da-size=sm],\
   [data-da-bg-color=dark][data-da-size=md],\
   [data-da-bg-color=dark][data-da-size=lg],\
@@ -36,7 +36,7 @@ $itemsToInvert: "\
 
 html[data-da="on"] {
   // 0.9 for lighter grayish
-  filter: invert(0.9) hue-rotate(180deg) !important;
+  filter: invert(0.91) hue-rotate(180deg) !important;
 
   body {
     #{$itemsToInvert} {

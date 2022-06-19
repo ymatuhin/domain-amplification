@@ -1,22 +1,36 @@
-chrome.runtime.onMessage.addListener((status, { tab }) => {
-  if (!tab?.id) return;
-  setBadge(tab.id, status);
+let invertedIcons = false;
+chrome.storage.sync.get(["invertedIcon"], (store) => {
+  invertedIcons = Boolean(store.invertedIcon);
+});
+
+chrome.runtime.onMessage.addListener((message, { tab }) => {
+  if (message.type === "status" && tab?.id) changeIcon(message.value, tab.id);
+  if (message.type === "icon") {
+    invertedIcons = message.value;
+    changeIcon();
+  }
 });
 
 chrome.action.onClicked.addListener(({ id }) => {
   if (!id) return;
+  console.log("onClicked", { id });
   chrome.tabs.sendMessage(id, "toggle");
 });
 
-function setBadge(tabId: number, enabled: boolean) {
+function changeIcon(enabled: boolean = false, tabId?: number) {
+  console.log("setBadge", { tabId, enabled });
+  const iconFolder = enabled ? "on" : "off";
+  const colorPrefix = invertedIcons ? "black" : "white";
+
   chrome.action.setIcon({
     tabId,
     path: {
-      16: enabled ? "dark/16.png" : "light/16.png",
-      32: enabled ? "dark/32.png" : "light/32.png",
-      48: enabled ? "dark/48.png" : "light/48.png",
-      64: enabled ? "dark/64.png" : "light/64.png",
-      128: enabled ? "dark/128.png" : "light/128.png",
+      16: `${iconFolder}/${colorPrefix}-16.png`,
+      24: `${iconFolder}/${colorPrefix}-24.png`,
+      32: `${iconFolder}/${colorPrefix}-32.png`,
+      48: `${iconFolder}/${colorPrefix}-48.png`,
+      64: `${iconFolder}/${colorPrefix}-64.png`,
+      128: `${iconFolder}/${colorPrefix}-128.png`,
     },
   });
 }

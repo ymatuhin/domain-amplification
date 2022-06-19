@@ -1,8 +1,8 @@
-import { hasBackColor } from "../utils/has-back-color";
+import { checkBackColorPresence } from "../utils/check-back-color-presence";
 
 export default (htmlElement: HTMLElement) => {
   const styles = getComputedStyle(htmlElement);
-  if (!hasBackColor(styles)) return;
+  if (!checkBackColorPresence(styles)) return;
 
   const rect = htmlElement.getBoundingClientRect();
   const area = rect.width * rect.height;

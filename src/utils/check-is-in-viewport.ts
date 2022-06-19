@@ -1,4 +1,4 @@
-export function isInViewport(element: Element) {
+export function checkIsInViewport(element: Element) {
   return getViewPercentage(element) !== 0;
 }
 

@@ -1,4 +1,4 @@
-export function bodyWaiter() {
+export function waitForBody() {
   return new Promise<void>((resolve) => {
     const observerParams = {
       subtree: false,

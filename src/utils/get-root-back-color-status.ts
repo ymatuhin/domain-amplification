@@ -1,8 +1,8 @@
-import { isSystemBgColor } from "./is-system-bg-color";
+import { checkBackColorIsSystem } from "./check-back-color-is-system";
 
 export function getRootBackColorStatus() {
-  const isSystemBgHtml = isSystemBgColor(document.documentElement);
-  const isSystemBgBody = isSystemBgColor(document.body);
+  const isSystemBgHtml = checkBackColorIsSystem(document.documentElement);
+  const isSystemBgBody = checkBackColorIsSystem(document.body);
 
   if (isSystemBgHtml && isSystemBgBody) return "both";
   else if (isSystemBgHtml) return "html";

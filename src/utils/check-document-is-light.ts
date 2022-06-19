@@ -1,10 +1,10 @@
-import { getLightnessStatus } from "./get-lightness-status";
+import { getLightnessStatus } from "./lightness";
 
-export function checkIsDocumentLight(body: HTMLElement) {
+export function checkDocumentIsLight(body: HTMLElement) {
   const htmlStyles = getComputedStyle(document.documentElement);
   const bodyStyles = getComputedStyle(body);
-  const htmlLightness = getLightnessStatus(htmlStyles);
-  const bodyLightness = getLightnessStatus(bodyStyles);
+  const htmlLightness = getLightnessStatus(htmlStyles.background);
+  const bodyLightness = getLightnessStatus(bodyStyles.background);
   if (bodyLightness) return bodyLightness === "light";
   else if (htmlLightness) return htmlLightness === "light";
   return true;

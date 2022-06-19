@@ -28,16 +28,11 @@ export function observeChanges(callback: (elements: HTMLElement[]) => void) {
 }
 
 function getTargets(mutation: MutationRecord) {
+  if (mutation.removedNodes.length) return [];
   const isMyAttribute =
     mutation.type === "attributes" &&
     mutation.attributeName?.includes("data-da-");
   if (isMyAttribute) return [];
 
-  if (mutation.type === "childList") {
-    return mutation.addedNodes;
-  }
-  if (mutation.type === "attributes") {
-    return [mutation.target];
-  }
-  return [];
+  return mutation.addedNodes.length ? mutation.addedNodes : [mutation.target];
 }

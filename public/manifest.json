@@ -1,15 +1,15 @@
 {
   "name": "Smart Dark Mode (dark/light or day/night mode for any website)",
+  "options_page": "options.html",
   "icons": {
-    "16": "light/16.png",
-    "32": "light/32.png",
-    "48": "light/48.png",
-    "64": "light/64.png",
-    "128": "light/128.png"
+    "16": "off/white-16.png",
+    "24": "off/white-24.png",
+    "32": "off/white-32.png",
+    "48": "off/white-48.png",
+    "64": "off/white-64.png",
+    "128": "off/white-128.png"
   },
-  "action": {
-    "default_title": "Toggle"
-  },
+  "action": {},
   "description": "",
   "version": "1.0",
   "incognito": "split",
