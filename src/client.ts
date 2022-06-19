@@ -3,13 +3,14 @@ import { handlers } from "./handlers";
 import { observeChanges } from "./observer";
 import { Status } from "./status";
 import { bodyWaiter } from "./utils/body-waiter";
-import { getLightnessStatus } from "./utils/get-lightness-status";
 import { getRootBackColorStatus } from "./utils/get-root-back-color-status";
 import { getRootTextColorStatus } from "./utils/get-root-text-color-status";
 import { isInViewport } from "./utils/in-viewport";
+import { checkIsDocumentLight } from "./utils/is-document-light";
 import { isVisible } from "./utils/is-visible";
 
-const CHUNK_SIZE = 32;
+// magic number, seems not laggy
+const CHUNK_SIZE = 24;
 export const SELECTOR =
   "body *:not(svg *,script,style,link,template,pre *,[contenteditable] > *)";
 
@@ -97,38 +98,37 @@ class App {
     this.handleQueues();
   }
 
-  getRegularChunk(size: number) {
-    const regularHtmlElements = [...this.regularQueue].slice(0, size);
-    regularHtmlElements.forEach(this.regularQueue.delete, this.regularQueue);
+  getChunk(queue: Set<HTMLElement>) {
+    const regularHtmlElements = [...queue].slice(0, CHUNK_SIZE);
+    regularHtmlElements.forEach(queue.delete, queue);
     return regularHtmlElements;
   }
 
   handleQueues(): void {
-    this.viewportQueue.forEach((htmlElement) => {
-      this.handleElement(htmlElement);
-      this.viewportQueue.delete(htmlElement);
-      this.regularQueue.delete(htmlElement);
-    }, this);
+    // first priority
+    this.handleViewportQueue();
 
-    if (this.viewportQueue.size < CHUNK_SIZE) {
-      const chunk = this.getRegularChunk(CHUNK_SIZE - this.viewportQueue.size);
-      if (!chunk.length) return;
-      chunk.forEach(this.handleElement, this);
-      requestIdleCallback(() => this.handleQueues());
-    }
+    // only after full load and no more viewport items to handle
+    if (document.readyState !== "complete") return;
+    if (this.viewportQueue.size > 0) return;
+    this.handleRegularQueue();
+  }
+
+  handleViewportQueue() {
+    const viewportChunk = this.getChunk(this.viewportQueue);
+    viewportChunk.forEach(this.handleElement.bind, this);
+    if (viewportChunk.length === 0) return;
+    setTimeout(() => this.handleQueues());
+  }
+
+  handleRegularQueue() {
+    const regularChunk = this.getChunk(this.regularQueue);
+    regularChunk.forEach(this.handleElement.bind, this);
+    if (regularChunk.length === 0) return;
+    requestIdleCallback(() => this.handleQueues());
   }
 
   handleElement(htmlElement: HTMLElement) {
     handlers.forEach((handle) => handle(htmlElement));
   }
-}
-
-function checkIsDocumentLight(body: HTMLElement) {
-  const htmlStyles = getComputedStyle(document.documentElement);
-  const bodyStyles = getComputedStyle(body);
-  const htmlLightness = getLightnessStatus(htmlStyles);
-  const bodyLightness = getLightnessStatus(bodyStyles);
-  if (bodyLightness) return bodyLightness === "light";
-  else if (htmlLightness) return htmlLightness === "light";
-  return true;
 }

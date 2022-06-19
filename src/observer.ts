@@ -4,6 +4,8 @@ const htmlElementFilter = (htmlElement: HTMLElement): boolean =>
   htmlElement instanceof HTMLElement;
 const selectorFilter = (htmlElement: HTMLElement) =>
   htmlElement.matches(SELECTOR);
+const visibleFilter = (htmlElement: HTMLElement) =>
+  htmlElement.offsetHeight > 0;
 const toHtmlElement = (target: Node) =>
   target instanceof Text ? target.parentElement : target;
 
@@ -17,7 +19,8 @@ export function observeChanges(callback: (elements: HTMLElement[]) => void) {
 
       const filtered = htmlElements
         .filter(htmlElementFilter)
-        .filter(selectorFilter);
+        .filter(selectorFilter)
+        .filter(visibleFilter);
       if (filtered.length) callback(filtered);
     });
   });
