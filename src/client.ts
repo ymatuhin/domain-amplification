@@ -1,4 +1,4 @@
-import { logger } from "debug";
+import { decorator, logger } from "debug";
 import { handlers } from "./handlers";
 import { changeObserver } from "./utils/change-observer";
 import { checkDocumentIsLight } from "./utils/check-document-is-light";
@@ -11,7 +11,9 @@ import { Status } from "./utils/status";
 import { waitForBody } from "./utils/wait-for-body";
 
 // magic number, seems not laggy
-const log = logger("💡 smart-dark-mode");
+const log = logger("sdm");
+const logMethod = decorator(log);
+
 const CHUNK_SIZE = 24;
 export const SELECTOR =
   "body *:not(svg *,script,style,link,template,pre *,[contenteditable] > *)";
@@ -37,6 +39,7 @@ class App {
     this.init();
   }
 
+  @logMethod
   init() {
     const { value } = this.status;
     log(`send message to background`, value);
@@ -53,35 +56,37 @@ class App {
     this.setRootAttributes();
   }
 
+  @logMethod
   initDarkScroll(isActive: boolean) {
-    log(`initDarkScroll`, isActive);
     const { documentElement: html } = document;
     html.dataset.sdmDarkScroll = isActive ? "on" : "off";
   }
 
+  @logMethod
   onOff() {
     const { value } = this.status;
-    log(`onOff`, { value });
+    log("status value", value);
     chrome.runtime.sendMessage({ type: "status", value });
     if (value) this.on();
     else this.off();
   }
 
+  @logMethod
   on() {
-    log(`on`);
     this.addListeners();
     this.setRootAttributes();
     this.run();
   }
 
+  @logMethod
   off() {
-    log(`off`);
     this.setRootAttributes();
     this.removeListeners();
   }
 
+  @logMethod
   addListeners() {
-    log(`addListeners`, { readyState: document.readyState });
+    log(`readyState`, document.readyState);
     if (document.readyState === "complete") this.observer.start();
     if (document.readyState !== "complete") {
       const handleReadyStateChange = this.handleReadyStateChange.bind(this);
@@ -89,35 +94,35 @@ class App {
     }
   }
 
+  @logMethod
   removeListeners() {
-    log(`removeListeners`);
     this.observer.stop();
     const handleReadyStateChange = this.handleReadyStateChange.bind(this);
     document.removeEventListener("readystatechange", handleReadyStateChange);
   }
 
+  @logMethod
   handleReadyStateChange() {
-    log(`readystatechange`, document.readyState);
     if (document.readyState === "complete") this.observer.start();
     this.run();
   }
 
+  @logMethod
   observerHandler(elements: HTMLElement[]) {
-    log(`observeChanges`, elements);
     elements.forEach(this.viewportQueue.add, this.viewportQueue);
     this.handleQueues();
   }
 
+  @logMethod
   handleToggle() {
-    log(`handleToggle`);
     const value = this.status.toggle();
     chromeStore.set(value);
     chrome.runtime.sendMessage({ type: "status", value });
     this.onOff();
   }
 
+  @logMethod
   setRootAttributes() {
-    log(`setRootAttributes`);
     const { documentElement: html } = document;
     html.dataset.sdm = this.status.value ? "on" : "off";
 
@@ -128,8 +133,8 @@ class App {
     html.dataset.sdmBackColor = getRootBackColorStatus();
   }
 
+  @logMethod
   run() {
-    log(`run`);
     const htmlElements = Array.from(document.querySelectorAll(SELECTOR)).filter(
       ($element) => $element instanceof HTMLElement,
     ) as HTMLElement[];
@@ -143,7 +148,6 @@ class App {
         this.viewportQueue.delete(item);
       }
     });
-    log(`run:end`);
     this.handleQueues();
   }
 
@@ -153,36 +157,44 @@ class App {
     return regularHtmlElements;
   }
 
+  @logMethod
   handleQueues(): void {
-    log(`handleQueues`, {
-      viewportQueue: this.viewportQueue,
-      regularQueue: this.regularQueue,
-    });
-    // first priority
-    this.handleViewportQueue();
+    const { viewportQueue, regularQueue } = this;
+    const isComplete = document.readyState === "complete";
 
-    // only after full load and no more viewport items to handle
-    if (document.readyState !== "complete") return;
-    if (this.viewportQueue.size > 0) return;
-    this.handleRegularQueue();
+    log(`queues`, {
+      isComplete,
+      viewportQueue: this.viewportQueue.size,
+      regularQueue: this.regularQueue.size,
+    });
+
+    // first priority
+    requestAnimationFrame(() => {
+      if (viewportQueue.size > 0) {
+        this.handleViewportQueue();
+      }
+    });
+
+    requestIdleCallback(() => {
+      if (isComplete && regularQueue.size > 0) {
+        this.handleRegularQueue();
+      }
+    });
   }
 
+  @logMethod
   handleViewportQueue() {
-    if (this.viewportQueue.size === 0) return;
-    log(`handleViewportQueue`, this.viewportQueue);
-
+    console.info(this.getChunk(this.viewportQueue));
     const viewportChunk = this.getChunk(this.viewportQueue);
     viewportChunk.forEach(this.handleElement, this);
-    requestAnimationFrame(() => this.handleQueues());
+    this.handleQueues();
   }
 
+  @logMethod
   handleRegularQueue() {
-    if (this.regularQueue.size === 0) return;
-    log(`handleRegularQueue`, this.regularQueue);
-
     const regularChunk = this.getChunk(this.regularQueue);
     regularChunk.forEach(this.handleElement, this);
-    requestIdleCallback(() => this.handleQueues());
+    this.handleQueues();
   }
 
   handleElement(htmlElement: HTMLElement) {
