@@ -1,5 +1,6 @@
 {
-  "name": "Smart Dark Mode (dark/light or day/night mode for any website)",
+  "name": "Smart Dark Mode",
+  "description": "Extension that allow to view any website in dark mode. Especially useful in night time.",
   "options_page": "options.html",
   "icons": {
     "16": "off/white-16.png",
@@ -9,8 +10,9 @@
     "64": "off/white-64.png",
     "128": "off/white-128.png"
   },
-  "action": {},
-  "description": "",
+  "action": {
+    "default_title": "On/off dark mode"
+  },
   "version": "1.0",
   "incognito": "split",
   "background": {

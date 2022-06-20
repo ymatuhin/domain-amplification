@@ -1,5 +1,6 @@
 import { decorator, logger } from "debug";
 import { handlers } from "./handlers";
+import { Status } from "./status";
 import { changeObserver } from "./utils/change-observer";
 import { checkDocumentIsLight } from "./utils/check-document-is-light";
 import { checkIsInViewport } from "./utils/check-is-in-viewport";
@@ -7,7 +8,6 @@ import { checkIsVisible } from "./utils/check-is-visible";
 import * as chromeStore from "./utils/chrome-store";
 import { getRootBackColorStatus } from "./utils/get-root-back-color-status";
 import { getRootTextColorStatus } from "./utils/get-root-text-color-status";
-import { Status } from "./utils/status";
 import { waitForBody } from "./utils/wait-for-body";
 
 // magic number, seems not laggy
@@ -52,8 +52,9 @@ class App {
       this.initDarkScroll(darkScroll),
     );
 
-    if (value) this.on();
+    this.setInitialRootAttributes();
     this.setRootAttributes();
+    if (value) this.on();
   }
 
   @logMethod
@@ -63,10 +64,9 @@ class App {
   }
 
   @logMethod
-  onOff() {
+  toggle() {
     const { value } = this.status;
     log("status value", value);
-    chrome.runtime.sendMessage({ type: "status", value });
     if (value) this.on();
     else this.off();
   }
@@ -118,7 +118,13 @@ class App {
     const value = this.status.toggle();
     chromeStore.set(value);
     chrome.runtime.sendMessage({ type: "status", value });
-    this.onOff();
+    this.toggle();
+  }
+
+  @logMethod
+  setInitialRootAttributes() {
+    const { colorScheme } = getComputedStyle(document.documentElement);
+    document.documentElement.dataset.sdmColorScheme = colorScheme;
   }
 
   @logMethod
@@ -140,12 +146,13 @@ class App {
     ) as HTMLElement[];
     htmlElements.forEach((item) => {
       if (!checkIsVisible(item)) return;
+
       if (checkIsInViewport(item)) {
         this.viewportQueue.add(item);
         this.regularQueue.delete(item);
       } else {
+        if (this.viewportQueue.has(item)) return;
         this.regularQueue.add(item);
-        this.viewportQueue.delete(item);
       }
     });
     this.handleQueues();
@@ -184,16 +191,15 @@ class App {
 
   @logMethod
   handleViewportQueue() {
-    console.info(this.getChunk(this.viewportQueue));
     const viewportChunk = this.getChunk(this.viewportQueue);
-    viewportChunk.forEach(this.handleElement, this);
+    viewportChunk.forEach(this.handleElement.bind(this));
     this.handleQueues();
   }
 
   @logMethod
   handleRegularQueue() {
     const regularChunk = this.getChunk(this.regularQueue);
-    regularChunk.forEach(this.handleElement, this);
+    regularChunk.forEach(this.handleElement.bind(this));
     this.handleQueues();
   }
 

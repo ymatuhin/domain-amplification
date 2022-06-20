@@ -1,3 +1,3 @@
 export function checkIsVisible(element: HTMLElement) {
-  return element.offsetParent !== null;
+  return element.offsetHeight !== null;
 }

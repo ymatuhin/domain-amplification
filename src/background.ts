@@ -6,6 +6,7 @@ chrome.storage.sync.get(["invertedIcon"], (store) => {
 setDefaultDarkScroll();
 
 chrome.runtime.onMessage.addListener((message, { tab }) => {
+  console.log("onMessage", { message, tab });
   if (message.type === "status" && tab?.id) changeIcon(message.value, tab.id);
   if (message.type === "icon") {
     invertedIcons = message.value;
