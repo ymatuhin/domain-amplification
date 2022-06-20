@@ -1,3 +1,5 @@
+import { rgbaToObject } from "./rgba-to-object";
+
 export function checkTextColorIsSystem($element: HTMLElement) {
   document.documentElement.dataset.sdmScheme = "light";
   $element.dataset.sdmScheme = "light";
@@ -10,5 +12,7 @@ export function checkTextColorIsSystem($element: HTMLElement) {
   delete document.documentElement.dataset.sdmScheme;
   delete $element.dataset.sdmScheme;
 
-  return prevColor !== nextColor;
+  const { a } = rgbaToObject(prevColor);
+
+  return prevColor !== nextColor || a === 0;
 }

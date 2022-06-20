@@ -14,7 +14,7 @@ import { waitForBody } from "./utils/wait-for-body";
 const log = logger("sdm");
 const logMethod = decorator(log);
 
-const CHUNK_SIZE = 24;
+const CHUNK_SIZE = 32;
 export const SELECTOR =
   "body *:not(svg *,script,style,link,template,pre *,[contenteditable] > *)";
 
@@ -36,6 +36,9 @@ class App {
     this.observer = changeObserver(this.observerHandler.bind(this));
     log(`status`, this.status);
     log(`status value`, this.status.value);
+
+    // for unsubscribe
+    this.handleDomReady = this.handleDomReady.bind(this);
     this.init();
   }
 
@@ -64,7 +67,7 @@ class App {
   }
 
   @logMethod
-  toggle() {
+  applyStatus() {
     const { value } = this.status;
     log("status value", value);
     if (value) this.on();
@@ -87,24 +90,22 @@ class App {
   @logMethod
   addListeners() {
     log(`readyState`, document.readyState);
-    if (document.readyState === "complete") this.observer.start();
-    if (document.readyState !== "complete") {
-      const handleReadyStateChange = this.handleReadyStateChange.bind(this);
-      document.addEventListener("readystatechange", handleReadyStateChange);
+    if (document.readyState !== "loading") {
+      this.observer.start();
+    } else {
+      document.addEventListener("DOMContentLoaded", this.handleDomReady);
     }
+  }
+
+  handleDomReady() {
+    this.observer.start();
+    this.applyStatus();
   }
 
   @logMethod
   removeListeners() {
     this.observer.stop();
-    const handleReadyStateChange = this.handleReadyStateChange.bind(this);
-    document.removeEventListener("readystatechange", handleReadyStateChange);
-  }
-
-  @logMethod
-  handleReadyStateChange() {
-    if (document.readyState === "complete") this.observer.start();
-    this.run();
+    document.removeEventListener("DOMContentLoaded", this.handleDomReady);
   }
 
   @logMethod
@@ -118,7 +119,7 @@ class App {
     const value = this.status.toggle();
     chromeStore.set(value);
     chrome.runtime.sendMessage({ type: "status", value });
-    this.toggle();
+    this.applyStatus();
   }
 
   @logMethod
@@ -176,7 +177,7 @@ class App {
     });
 
     // first priority
-    requestAnimationFrame(() => {
+    setTimeout(() => {
       if (viewportQueue.size > 0) {
         this.handleViewportQueue();
       }

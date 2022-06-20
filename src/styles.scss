@@ -3,40 +3,16 @@ $itemsToInvert: "\
   [data-sdm-bg-color=dark][data-sdm-size=sm],\
   [data-sdm-bg-color=dark][data-sdm-size=md],\
   [data-sdm-bg-color=dark][data-sdm-size=lg],\
-  [data-sdm-bg-color=medium][data-sdm-size=xs],\
-  [data-sdm-bg-color=medium][data-sdm-size=sm],\
   [data-sdm-bg-image],\
+  [data-sdm-bg-image],\
+  [style*='url('],\
   [id*=yandex_rtb],\
   [data-sdm-emoji],\
 ";
 
-@layer da-base {
-  html[data-sdm="on"] {
-    &[data-sdm-text-color="both"] body,
-    &[data-sdm-text-color="body"] body {
-      color: #000;
-    }
-
-    &[data-sdm-back-color="both"] body,
-    &[data-sdm-back-color="body"] body {
-      background: #fff;
-    }
-
-    // have to reset because color-scheme=dark changes some input colors
-    // https://trac.webkit.org/browser/trunk/Source/WebCore/css/html.css
-    input,
-    select,
-    button,
-    textarea {
-      color: #000;
-      background: #fff;
-    }
-  }
-}
-
 html[data-sdm="on"] {
-  // 0.9 for lighter grayish
-  filter: invert(0.91) hue-rotate(180deg) !important;
+  // ~0.9 for lighter grayish
+  filter: invert(0.92) hue-rotate(180deg) !important;
 
   body {
     #{$itemsToInvert} {
@@ -53,7 +29,7 @@ html[data-sdm="on"] {
   }
 }
 
-// needed for detecting system color changes
+// needed for detecting system colors
 [data-sdm-scheme="dark"] {
   color-scheme: dark !important;
 }
@@ -61,8 +37,17 @@ html[data-sdm="on"] {
   color-scheme: light !important;
 }
 
-// apply color scheme only when not detecting
-html[data-sdm-dark-scroll="on"]:not([data-sdm-scheme]),
-html[data-sdm-dark-scroll="on"]:not([data-sdm-scheme]) body {
-  color-scheme: dark !important;
+html[data-sdm-dark-scroll="on"] {
+  &[data-sdm-text-color="both"] body {
+    color: #000;
+  }
+  &[data-sdm-text-color="both"] body {
+    color: inherit;
+  }
+  &[data-sdm-back-color="both"] body {
+    background: #fff;
+  }
+  &[data-sdm-back-color="body"] body {
+    background: inherit;
+  }
 }
