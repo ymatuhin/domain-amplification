@@ -33,6 +33,7 @@ class App {
     this.status = new Status(storedStatus, isLightChecker);
     this.observer = changeObserver(this.observerHandler.bind(this));
     log(`status`, this.status);
+    log(`status`, { value: this.status.value });
     this.init();
   }
 
@@ -40,15 +41,11 @@ class App {
     const { value } = this.status;
     log(`send message to background`, value);
     chrome.runtime.sendMessage({ type: "status", value });
-
-    if (value) this.on();
     chrome.runtime.onMessage.addListener((message) => {
       log(`onMessage from background`, message);
       if (message === "toggle") this.handleToggle();
     });
-
-    // check again after short delay
-    setTimeout(() => this.onOff(), 200);
+    if (value) this.on();
   }
 
   onOff() {
@@ -91,7 +88,6 @@ class App {
   handleReadyStateChange() {
     log(`readystatechange`, { readyState: document.readyState });
     if (document.readyState === "complete") this.observer.start();
-    this.run();
   }
 
   observerHandler(elements: HTMLElement[]) {

@@ -1,14 +1,21 @@
-const invertElement: HTMLInputElement = document.querySelector(".invert-icon")!;
+const invertCheck: HTMLInputElement = document.querySelector(".js-invert")!;
+const clearButton: HTMLInputElement = document.querySelector(".js-clear")!;
 
 chrome.storage.sync.get(["invertedIcon"], (store) => {
-  invertElement.checked = Boolean(store.invertedIcon);
+  invertCheck.checked = Boolean(store.invertedIcon);
 });
 
-invertElement.addEventListener(
-  "input",
-  () => {
-    chrome.storage.sync.set({ invertedIcon: invertElement.checked });
-    chrome.runtime.sendMessage({ type: "icon", value: invertElement.checked });
-  },
-  { passive: true },
-);
+invertCheck.addEventListener("input", handleInvert, { passive: true });
+clearButton.addEventListener("click", handleClear, { passive: true });
+
+function handleInvert() {
+  chrome.storage.sync.set({ invertedIcon: invertCheck.checked });
+  chrome.runtime.sendMessage({ type: "icon", value: invertCheck.checked });
+}
+
+function handleClear() {
+  chrome.storage.sync.clear(() => {
+    const { lastError } = chrome.runtime;
+    alert(lastError ? `Something went wrong` : `Done`);
+  });
+}

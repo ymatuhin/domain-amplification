@@ -5,9 +5,12 @@
 
 <form>
   <label
-    ><input type="checkbox" class="invert-icon" /> invert toolbar icon
+    ><input type="checkbox" class="invert-icon js-invert" /> invert toolbar icon
     color</label
   >
+  <button class="button js-clear" type="button">
+    Clear saved status for all domains
+  </button>
   <p class="ps">Yeah, not much so far :)</p>
 </form>
 
@@ -33,7 +36,7 @@
     font-size: 3rem;
     line-height: 1;
     margin-top: 0;
-    margin-bottom: 2rem;
+    margin-bottom: 3rem;
   }
   h2 {
     font-size: 1rem;
@@ -46,8 +49,10 @@
     display: inline-flex;
     align-items: center;
     user-select: none;
+    cursor: pointer;
   }
   input[type="checkbox"] {
+    margin: 0;
     margin-right: 0.5rem;
     zoom: 1.5;
   }
@@ -55,6 +60,11 @@
     margin-top: 4rem;
     color: rgb(150, 150, 150);
     font-size: 0.8rem;
+  }
+  .button {
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    margin-top: 1rem;
   }
 </style>
 

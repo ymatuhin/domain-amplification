@@ -1,10 +1,15 @@
+import { rgbaRx } from "./check-back-color-presence";
 import { rgbToHsl } from "./rgb-to-hsl";
 import { rgbaToObject } from "./rgba-to-object";
 
 export function getLightnessStatus(property: string) {
-  const lightness = computeLightnessValue(property);
-  if (!lightness) return null;
-  return getLightnessStatusFromValue(lightness);
+  const colors = property.match(rgbaRx) ?? [];
+  const noTransparent = colors.filter((color) => rgbaToObject(color).a !== 0);
+  const lightness = noTransparent.map(computeLightnessValue) as number[];
+
+  if (!lightness.length) return;
+  const avg = lightness.reduce((a, b) => a + b) / lightness.length;
+  return getLightnessStatusFromValue(avg);
 }
 
 export function getLightnessStatusFromValue(value: number) {
