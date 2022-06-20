@@ -1,4 +1,4 @@
-import { SELECTOR } from "./client";
+import { SELECTOR } from "../client";
 
 const htmlElementFilter = (htmlElement: HTMLElement): boolean =>
   htmlElement instanceof HTMLElement;
@@ -9,7 +9,7 @@ const visibleFilter = (htmlElement: HTMLElement) =>
 const toHtmlElement = (target: Node) =>
   target instanceof Text ? target.parentElement : target;
 
-export function observeChanges(callback: (elements: HTMLElement[]) => void) {
+export function changeObserver(callback: (elements: HTMLElement[]) => void) {
   const observerParams = { subtree: true, childList: true, attributes: true };
   const observer = new MutationObserver((mutations_list) => {
     mutations_list.forEach((mutation) => {
@@ -24,7 +24,10 @@ export function observeChanges(callback: (elements: HTMLElement[]) => void) {
       if (filtered.length) callback(filtered);
     });
   });
-  observer.observe(document.documentElement, observerParams);
+  return {
+    start: () => observer.observe(document.documentElement, observerParams),
+    stop: () => observer.disconnect(),
+  };
 }
 
 function getTargets(mutation: MutationRecord) {

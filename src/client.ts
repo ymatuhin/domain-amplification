@@ -1,13 +1,13 @@
 import { logger } from "debug";
-import * as chromeStore from "./chrome-store";
 import { handlers } from "./handlers";
-import { observeChanges } from "./observer";
-import { Status } from "./status";
+import { changeObserver } from "./utils/change-observer";
 import { checkDocumentIsLight } from "./utils/check-document-is-light";
 import { checkIsInViewport } from "./utils/check-is-in-viewport";
 import { checkIsVisible } from "./utils/check-is-visible";
+import * as chromeStore from "./utils/chrome-store";
 import { getRootBackColorStatus } from "./utils/get-root-back-color-status";
 import { getRootTextColorStatus } from "./utils/get-root-text-color-status";
+import { Status } from "./utils/status";
 import { waitForBody } from "./utils/wait-for-body";
 
 // magic number, seems not laggy
@@ -24,57 +24,88 @@ Promise.all(promises).then(([storedStatus]) => {
 
 class App {
   status: Status;
+  observer: ReturnType<typeof changeObserver>;
   viewportQueue: Set<HTMLElement> = new Set();
   regularQueue: Set<HTMLElement> = new Set();
 
   constructor(storedStatus: boolean | null) {
-    const isLight = checkDocumentIsLight(document.body);
-    log(`isLight`, isLight);
-    this.status = new Status(storedStatus, isLight);
+    const isLightChecker = () => checkDocumentIsLight(document.body);
+    this.status = new Status(storedStatus, isLightChecker);
+    this.observer = changeObserver(this.observerHandler.bind(this));
     log(`status`, this.status);
     this.init();
   }
 
   init() {
-    log(`send message to background`, this.status.value);
-    chrome.runtime.sendMessage({ type: "status", value: this.status.value });
+    const { value } = this.status;
+    log(`send message to background`, value);
+    chrome.runtime.sendMessage({ type: "status", value });
+
+    if (value) this.on();
+    chrome.runtime.onMessage.addListener((message) => {
+      log(`onMessage from background`, message);
+      if (message === "toggle") this.handleToggle();
+    });
+
+    // check again after short delay
+    setTimeout(() => this.onOff(), 200);
+  }
+
+  onOff() {
+    const { value } = this.status;
+    log(`onOff`, { value });
+    chrome.runtime.sendMessage({ type: "status", value });
+    if (value) this.on();
+    else this.off();
+  }
+
+  on() {
+    log(`on`);
     this.addListeners();
     this.setRootAttributes();
     this.run();
   }
 
-  addListeners() {
-    log(`addListeners`, { readyState: document.readyState });
-    if (document.readyState === "complete") this.runObserver();
-    if (document.readyState !== "complete") {
-      document.addEventListener("readystatechange", () => {
-        log(`readystatechange`, { readyState: document.readyState });
-        this.run();
-        if (document.readyState === "complete") this.runObserver();
-      });
-    }
-    chrome.runtime.onMessage.addListener((message) => {
-      log(`onMessage from background`, message);
-      if (message === "toggle") this.handleToggle();
-    });
+  off() {
+    log(`off`);
+    this.setRootAttributes();
+    this.removeListeners();
   }
 
-  runObserver() {
-    log(`runObserver`);
-    observeChanges((elements) => {
-      log(`observeChanges`, elements);
-      elements.forEach(this.viewportQueue.add, this.viewportQueue);
-      this.handleQueues();
-    });
+  addListeners() {
+    log(`addListeners`, { readyState: document.readyState });
+    if (document.readyState === "complete") this.observer.start();
+    if (document.readyState !== "complete") {
+      const handleReadyStateChange = this.handleReadyStateChange.bind(this);
+      document.addEventListener("readystatechange", handleReadyStateChange);
+    }
+  }
+
+  removeListeners() {
+    log(`removeListeners`);
+    this.observer.stop();
+    const handleReadyStateChange = this.handleReadyStateChange.bind(this);
+    document.removeEventListener("readystatechange", handleReadyStateChange);
+  }
+
+  handleReadyStateChange() {
+    log(`readystatechange`, { readyState: document.readyState });
+    if (document.readyState === "complete") this.observer.start();
+    this.run();
+  }
+
+  observerHandler(elements: HTMLElement[]) {
+    log(`observeChanges`, elements);
+    elements.forEach(this.viewportQueue.add, this.viewportQueue);
+    this.handleQueues();
   }
 
   handleToggle() {
     log(`handleToggle`);
-    this.status.toggle();
-    chromeStore.set(this.status.value);
-    chrome.runtime.sendMessage({ type: "status", value: this.status.value });
-    this.setRootAttributes();
-    this.run();
+    const value = this.status.toggle();
+    chromeStore.set(value);
+    chrome.runtime.sendMessage({ type: "status", value });
+    this.onOff();
   }
 
   setRootAttributes() {
