@@ -1,6 +1,3 @@
-// @ts-ignore
-import throttle from "raf-throttle";
-
 import { SELECTOR } from "../client";
 
 const htmlElementFilter = (htmlElement: HTMLElement): boolean =>
@@ -13,12 +10,11 @@ const toHtmlElement = (target: Node) =>
   target instanceof Text ? target.parentElement : target;
 
 export function changeObserver(callback: (elements: HTMLElement[]) => void) {
-  const throttled = throttle(callback);
-
+  let handling = false;
   const observerParams = { subtree: true, childList: true, attributes: true };
   const observer = new MutationObserver((mutations_list) => {
+    handling = true;
     mutations_list.forEach((mutation) => {
-      console.info(`🔥 mutation`, mutation);
       const targets = Array.from(getTargets(mutation));
       const htmlElements = targets.map(toHtmlElement) as HTMLElement[];
       if (!htmlElements) return;
@@ -27,7 +23,8 @@ export function changeObserver(callback: (elements: HTMLElement[]) => void) {
         .filter(htmlElementFilter)
         .filter(selectorFilter)
         .filter(visibleFilter);
-      if (filtered.length) throttled(filtered);
+
+      if (filtered.length) callback(filtered);
     });
   });
   return {
