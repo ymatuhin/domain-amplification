@@ -37,7 +37,7 @@ html[data-sdm="on"] {
   color-scheme: light !important;
 }
 
-html[data-sdm-dark-scroll="on"] {
+html[data-sdm="on"] {
   &[data-sdm-text-color="both"] body {
     color: #000;
   }
@@ -49,5 +49,32 @@ html[data-sdm-dark-scroll="on"] {
   }
   &[data-sdm-back-color="body"] body {
     background: inherit;
+  }
+}
+html[data-sdm-dark-scroll="on"] {
+  ::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+    background: #222;
+  }
+  ::-webkit-scrollbar-track {
+    border: 0 solid #363636;
+    background: #222;
+  }
+  ::-webkit-scrollbar-track:horizontal {
+    border-top-width: 1px;
+  }
+  ::-webkit-scrollbar-track:vertical {
+    border-left-width: 1px;
+  }
+  ::-webkit-scrollbar-corner {
+    background: #222;
+  }
+  ::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: #656565;
+    box-shadow: inset 0 0 1px 0 #1b1b1b;
+    border: 4px solid transparent;
+    background-clip: padding-box;
   }
 }
