@@ -15,6 +15,8 @@ export class Status {
   get value() {
     if (typeof this.stored === "boolean") return this.stored;
     if (this.isExcluded) return false;
+    const { colorScheme } = getComputedStyle(document.documentElement);
+    if (colorScheme === "dark") return false;
     if (typeof this.isLight === "boolean") return this.isLight;
     return this.isMaybeExcluded ? false : true;
   }
