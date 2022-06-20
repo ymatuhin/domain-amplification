@@ -99,6 +99,7 @@ class App {
   handleReadyStateChange() {
     log(`readystatechange`, document.readyState);
     if (document.readyState === "complete") this.observer.start();
+    this.run();
   }
 
   observerHandler(elements: HTMLElement[]) {
