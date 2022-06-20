@@ -4,14 +4,16 @@
 <h1>Settings</h1>
 
 <form>
-  <label
-    ><input type="checkbox" class="invert-icon js-invert" /> invert toolbar icon
-    color</label
-  >
+  <label>
+    <input type="checkbox" class="js-invert" /> invert toolbar icon color
+  </label>
+  <label>
+    <input type="checkbox" class="js-dark-scroll" /> dark scrollbar even if
+    extensions isn't active
+  </label>
   <button class="button js-clear" type="button">
     Clear saved status for all domains
   </button>
-  <p class="ps">Yeah, not much so far :)</p>
 </form>
 
 <style>
@@ -46,20 +48,18 @@
     color: rgb(150, 150, 150);
   }
   label {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     user-select: none;
     cursor: pointer;
+  }
+  label + label {
+    margin-top: 0.5rem;
   }
   input[type="checkbox"] {
     margin: 0;
     margin-right: 0.5rem;
     zoom: 1.5;
-  }
-  .ps {
-    margin-top: 4rem;
-    color: rgb(150, 150, 150);
-    font-size: 0.8rem;
   }
   .button {
     cursor: pointer;

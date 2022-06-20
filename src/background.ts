@@ -3,6 +3,8 @@ chrome.storage.sync.get(["invertedIcon"], (store) => {
   invertedIcons = Boolean(store.invertedIcon);
 });
 
+setDefaultDarkScroll();
+
 chrome.runtime.onMessage.addListener((message, { tab }) => {
   if (message.type === "status" && tab?.id) changeIcon(message.value, tab.id);
   if (message.type === "icon") {
@@ -32,5 +34,13 @@ function changeIcon(enabled: boolean = false, tabId?: number) {
       64: `${iconFolder}/${colorPrefix}-64.png`,
       128: `${iconFolder}/${colorPrefix}-128.png`,
     },
+  });
+}
+
+function setDefaultDarkScroll() {
+  chrome.storage.sync.get(["darkScroll"], (store) => {
+    if (store.darkScroll === undefined) {
+      chrome.storage.sync.set({ darkScroll: true });
+    }
   });
 }
