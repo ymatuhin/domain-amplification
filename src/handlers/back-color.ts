@@ -10,6 +10,10 @@ import { rgbaToObject } from "../utils/rgba-to-object";
 
 export default (item: HTMLElement) => {
   const styles = getComputedStyle(item);
+  if (styles.backgroundImage.includes("url")) {
+    item.dataset.sdmBgImage = "";
+  }
+
   if (!checkBackColorPresence(styles)) return;
 
   const colors = styles.background.match(rgbaRx) ?? [];
