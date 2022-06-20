@@ -1,10 +1,9 @@
 import { rgbaToObject } from "./rgba-to-object";
 
-export const rgbaRx = /rgba?\(\d+\,\s?\d+\,\s?\d+(\,\s?\d+)?\)/gi;
+export const rgbaRx =
+  /rgba?\(\d+\.?\d*\,\s?\d+\.?\d*\,\s?\d+\.?\d*(\,\s?\d+\.?\d*)?\)/gi;
 
 export function checkBackColorPresence({ background }: CSSStyleDeclaration) {
-  if (!rgbaRx.test(background)) return false;
-
   const colors = background.match(rgbaRx) ?? [];
   const noTransparent = colors.filter((color) => {
     const { a } = rgbaToObject(color);

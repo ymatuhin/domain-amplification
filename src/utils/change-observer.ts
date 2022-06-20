@@ -5,7 +5,7 @@ const htmlElementFilter = (htmlElement: HTMLElement): boolean =>
 const selectorFilter = (htmlElement: HTMLElement) =>
   htmlElement.matches(SELECTOR);
 const visibleFilter = (htmlElement: HTMLElement) =>
-  htmlElement.offsetHeight > 0;
+  htmlElement.offsetHeight !== null;
 const toHtmlElement = (target: Node) =>
   target instanceof Text ? target.parentElement : target;
 

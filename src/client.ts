@@ -97,6 +97,7 @@ class App {
     }
   }
 
+  @logMethod
   handleDomReady() {
     this.observer.start();
     this.applyStatus();
@@ -110,7 +111,7 @@ class App {
 
   @logMethod
   observerHandler(elements: HTMLElement[]) {
-    elements.forEach(this.viewportQueue.add, this.viewportQueue);
+    elements.forEach((item) => this.viewportQueue.add(item));
     this.handleQueues();
   }
 
@@ -156,12 +157,12 @@ class App {
         this.regularQueue.add(item);
       }
     });
-    this.handleQueues();
+    setTimeout(() => this.handleQueues());
   }
 
   getChunk(queue: Set<HTMLElement>) {
     const regularHtmlElements = [...queue].slice(0, CHUNK_SIZE);
-    regularHtmlElements.forEach(queue.delete, queue);
+    regularHtmlElements.forEach((element) => queue.delete(element));
     return regularHtmlElements;
   }
 
