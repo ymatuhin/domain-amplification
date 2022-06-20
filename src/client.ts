@@ -58,7 +58,6 @@ class App {
       },
     );
 
-    this.setInitialRootAttributes();
     this.setRootAttributes();
     if (value) this.on();
   }
@@ -128,12 +127,6 @@ class App {
   }
 
   @logMethod
-  setInitialRootAttributes() {
-    const { colorScheme } = getComputedStyle(document.documentElement);
-    document.documentElement.dataset.sdmColorScheme = colorScheme;
-  }
-
-  @logMethod
   setRootAttributes() {
     const { documentElement: html } = document;
     html.dataset.sdm = this.status.value ? "on" : "off";
@@ -141,8 +134,10 @@ class App {
     delete html.dataset.sdmTextColor;
     delete html.dataset.sdmBackColor;
 
+    html.style.overflow = "hidden";
     html.dataset.sdmTextColor = getRootTextColorStatus();
     html.dataset.sdmBackColor = getRootBackColorStatus();
+    html.style.overflow = "";
   }
 
   @logMethod
@@ -182,11 +177,9 @@ class App {
     });
 
     // first priority
-    setTimeout(() => {
-      if (viewportQueue.size > 0) {
-        this.handleViewportQueue();
-      }
-    });
+    if (viewportQueue.size > 0) {
+      this.handleViewportQueue();
+    }
 
     requestIdleCallback(() => {
       if (isComplete && regularQueue.size > 0) {
@@ -199,7 +192,7 @@ class App {
   handleViewportQueue() {
     const viewportChunk = this.getChunk(this.viewportQueue);
     viewportChunk.forEach(this.handleElement.bind(this));
-    this.handleQueues();
+    setTimeout(() => this.handleQueues(), 0);
   }
 
   @logMethod
