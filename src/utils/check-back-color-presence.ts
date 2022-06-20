@@ -1,7 +1,7 @@
 import { rgbaToObject } from "./rgba-to-object";
 
 export const rgbaRx =
-  /rgba?\(\d+\.?\d*\,\s?\d+\.?\d*\,\s?\d+\.?\d*(\,\s?\d+\.?\d*)?\)/gi;
+  /rgba?\(\s*\d+\.?\d*\s*,\s*\d+\.?\d*\s*,\s*\d+\.?\d*\s*(,\s*\d+\.?\d*\s*)?\)/gi;
 
 export function checkBackColorPresence({ background }: CSSStyleDeclaration) {
   const colors = background.match(rgbaRx) ?? [];
