@@ -51,8 +51,11 @@ class App {
       log(`onMessage from background`, message);
       if (message === "toggle") this.handleToggle();
     });
-    chrome.storage.sync.get(["darkScroll"], ({ darkScroll }) =>
-      this.initDarkScroll(darkScroll),
+    chrome.storage.sync.get(
+      ["customScroll", "defaultCustomScroll"],
+      ({ customScroll, defaultCustomScroll }) => {
+        this.initCustomScroll(customScroll, defaultCustomScroll);
+      },
     );
 
     this.setInitialRootAttributes();
@@ -61,9 +64,10 @@ class App {
   }
 
   @logMethod
-  initDarkScroll(isActive: boolean) {
+  initCustomScroll(customScroll: boolean, defaultCustomScroll: boolean) {
     const { documentElement: html } = document;
-    html.dataset.sdmDarkScroll = isActive ? "on" : "off";
+    html.dataset.sdmCustomScroll = customScroll ? "on" : "off";
+    html.dataset.sdmDefaultCustomScroll = defaultCustomScroll ? "on" : "off";
   }
 
   @logMethod

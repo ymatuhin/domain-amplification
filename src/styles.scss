@@ -51,7 +51,9 @@ html[data-sdm="on"] {
     background: inherit;
   }
 }
-html[data-sdm-dark-scroll="on"] {
+
+html[data-sdm="on"][data-sdm-custom-scroll="on"],
+html[data-sdm="off"][data-sdm-custom-scroll="on"][data-sdm-default-custom-scroll="on"] {
   ::-webkit-scrollbar {
     width: 14px;
     height: 14px;
