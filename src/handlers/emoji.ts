@@ -5,7 +5,7 @@ export default function handleEmoji(htmlElement: HTMLElement) {
   nodes.forEach((node) => {
     if (node instanceof HTMLElement) return handleEmoji(node);
     if (!(node instanceof Text)) return;
-    if (!htmlElement || htmlElement.hasAttribute("data-da-emoji")) return;
+    if (!htmlElement || htmlElement.hasAttribute("data-sdm-emoji")) return;
 
     const match = (node.textContent ?? "").match(emojiRx) ?? [];
     const hasEmoji = match.length > 0;
@@ -15,11 +15,11 @@ export default function handleEmoji(htmlElement: HTMLElement) {
       match.length === 1 && htmlElement.textContent === match[0];
 
     if (parentHasOnlyOneEmoji) {
-      htmlElement.dataset.daEmoji = "";
+      htmlElement.dataset.sdmEmoji = "";
     } else {
       let html = htmlElement.innerHTML;
       [...new Set(match)].forEach((emoji) => {
-        html = html.replaceAll(emoji, `<span data-da-emoji>${emoji}</span>`);
+        html = html.replaceAll(emoji, `<span data-sdm-emoji>${emoji}</span>`);
       });
       htmlElement.innerHTML = html;
     }

@@ -33,7 +33,7 @@ class App {
     this.status = new Status(storedStatus, isLightChecker);
     this.observer = changeObserver(this.observerHandler.bind(this));
     log(`status`, this.status);
-    log(`status`, { value: this.status.value });
+    log(`status value`, this.status.value);
     this.init();
   }
 
@@ -45,7 +45,18 @@ class App {
       log(`onMessage from background`, message);
       if (message === "toggle") this.handleToggle();
     });
+    chrome.storage.sync.get(["darkScroll"], ({ darkScroll }) =>
+      this.initDarkScroll(darkScroll),
+    );
+
     if (value) this.on();
+    this.setRootAttributes();
+  }
+
+  initDarkScroll(isActive: boolean) {
+    log(`initDarkScroll`, isActive);
+    const { documentElement: html } = document;
+    html.dataset.sdmDarkScroll = isActive ? "on" : "off";
   }
 
   onOff() {
@@ -86,7 +97,7 @@ class App {
   }
 
   handleReadyStateChange() {
-    log(`readystatechange`, { readyState: document.readyState });
+    log(`readystatechange`, document.readyState);
     if (document.readyState === "complete") this.observer.start();
   }
 
@@ -107,13 +118,13 @@ class App {
   setRootAttributes() {
     log(`setRootAttributes`);
     const { documentElement: html } = document;
-    html.dataset.da = this.status.value ? "on" : "off";
+    html.dataset.sdm = this.status.value ? "on" : "off";
 
-    delete html.dataset.daTextColor;
-    delete html.dataset.daBackColor;
+    delete html.dataset.sdmTextColor;
+    delete html.dataset.sdmBackColor;
 
-    html.dataset.daTextColor = getRootTextColorStatus();
-    html.dataset.daBackColor = getRootBackColorStatus();
+    html.dataset.sdmTextColor = getRootTextColorStatus();
+    html.dataset.sdmBackColor = getRootBackColorStatus();
   }
 
   run() {
@@ -132,7 +143,6 @@ class App {
       }
     });
     log(`run:end`);
-
     this.handleQueues();
   }
 
@@ -162,7 +172,7 @@ class App {
 
     const viewportChunk = this.getChunk(this.viewportQueue);
     viewportChunk.forEach(this.handleElement, this);
-    setTimeout(() => this.handleQueues(), 10);
+    requestAnimationFrame(() => this.handleQueues());
   }
 
   handleRegularQueue() {

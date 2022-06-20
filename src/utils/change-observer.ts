@@ -1,3 +1,6 @@
+// @ts-ignore
+import throttle from "raf-throttle";
+
 import { SELECTOR } from "../client";
 
 const htmlElementFilter = (htmlElement: HTMLElement): boolean =>
@@ -10,9 +13,12 @@ const toHtmlElement = (target: Node) =>
   target instanceof Text ? target.parentElement : target;
 
 export function changeObserver(callback: (elements: HTMLElement[]) => void) {
+  const throttled = throttle(callback);
+
   const observerParams = { subtree: true, childList: true, attributes: true };
   const observer = new MutationObserver((mutations_list) => {
     mutations_list.forEach((mutation) => {
+      console.info(`🔥 mutation`, mutation);
       const targets = Array.from(getTargets(mutation));
       const htmlElements = targets.map(toHtmlElement) as HTMLElement[];
       if (!htmlElements) return;
@@ -21,7 +27,7 @@ export function changeObserver(callback: (elements: HTMLElement[]) => void) {
         .filter(htmlElementFilter)
         .filter(selectorFilter)
         .filter(visibleFilter);
-      if (filtered.length) callback(filtered);
+      if (filtered.length) throttled(filtered);
     });
   });
   return {
@@ -34,7 +40,7 @@ function getTargets(mutation: MutationRecord) {
   if (mutation.removedNodes.length) return [];
   const isMyAttribute =
     mutation.type === "attributes" &&
-    mutation.attributeName?.includes("data-da-");
+    mutation.attributeName?.includes("data-sdm");
   if (isMyAttribute) return [];
 
   return mutation.addedNodes.length ? mutation.addedNodes : [mutation.target];

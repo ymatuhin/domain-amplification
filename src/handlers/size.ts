@@ -10,8 +10,8 @@ export default (htmlElement: HTMLElement) => {
   const windowArea = window.outerHeight * window.outerHeight;
   const spacePercent = Math.round((area / windowArea) * 100);
 
-  if (spacePercent < 2) htmlElement.dataset.daSize = "xs";
-  else if (spacePercent < 4) htmlElement.dataset.daSize = "sm";
-  else if (spacePercent < 12) htmlElement.dataset.daSize = "md";
-  else htmlElement.dataset.daSize = "lg";
+  if (spacePercent < 2) htmlElement.dataset.sdmSize = "xs";
+  else if (spacePercent < 4) htmlElement.dataset.sdmSize = "sm";
+  else if (spacePercent < 12) htmlElement.dataset.sdmSize = "md";
+  else htmlElement.dataset.sdmSize = "lg";
 };

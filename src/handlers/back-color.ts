@@ -19,5 +19,5 @@ export default (item: HTMLElement) => {
   if (!lightness.length) return;
   const avg = lightness.reduce((a, b) => a + b) / lightness.length;
   const status = getLightnessStatusFromValue(avg);
-  item.dataset.daBgColor = status;
+  item.dataset.sdmBgColor = status;
 };
