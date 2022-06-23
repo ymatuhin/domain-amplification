@@ -1,3 +1,5 @@
+import { attrs } from "../../config";
+
 const emojiRx = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
 
 export default function handleEmoji(htmlElement: HTMLElement) {
@@ -15,11 +17,14 @@ export default function handleEmoji(htmlElement: HTMLElement) {
       match.length === 1 && htmlElement.textContent === match[0];
 
     if (parentHasOnlyOneEmoji) {
-      htmlElement.dataset.sdmEmoji = "";
+      htmlElement.setAttribute(attrs.emoji, "");
     } else {
       let html = htmlElement.innerHTML;
       [...new Set(match)].forEach((emoji) => {
-        html = html.replaceAll(emoji, `<span data-sdm-emoji>${emoji}</span>`);
+        html = html.replaceAll(
+          emoji,
+          `<span ${attrs.emoji}="">${emoji}</span>`,
+        );
       });
       htmlElement.innerHTML = html;
     }

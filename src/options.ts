@@ -33,6 +33,7 @@ function handleInvert() {
 function handleClear() {
   chrome.storage.sync.clear(() => {
     const { lastError } = chrome.runtime;
+    location.reload();
     alert(lastError ? `Something went wrong` : `Done`);
   });
 }

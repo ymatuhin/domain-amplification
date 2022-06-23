@@ -1,19 +1,17 @@
 import {
   checkBackColorPresence,
-  rgbaRx,
-} from "../utils/check-back-color-presence";
-import {
   computeLightnessValue,
   getLightnessStatusFromValue,
-} from "../utils/lightness";
-import { rgbaToObject } from "../utils/rgba-to-object";
+  rgbaToObject,
+} from "../../color";
+import { checkBackImagePresence } from "../../color/check-back-image-presence";
+import { attrs, rgbaRx } from "../../config";
 
-export default (item: HTMLElement) => {
-  const styles = getComputedStyle(item);
-  if (styles.backgroundImage.includes("url")) {
-    item.dataset.sdmBgImage = "";
-  }
+export default (element: HTMLElement, styles = getComputedStyle(element)) => {
+  element.removeAttribute(attrs.image);
+  element.removeAttribute(attrs.back);
 
+  if (checkBackImagePresence(styles)) element.setAttribute(attrs.image, "");
   if (!checkBackColorPresence(styles)) return;
 
   const colors = styles.background.match(rgbaRx) ?? [];
@@ -23,5 +21,6 @@ export default (item: HTMLElement) => {
   if (!lightness.length) return;
   const avg = lightness.reduce((a, b) => a + b) / lightness.length;
   const status = getLightnessStatusFromValue(avg);
-  item.dataset.sdmBgColor = status;
+
+  element.setAttribute(attrs.back, status);
 };

@@ -1,0 +1,18 @@
+// sdm-html-system-background
+// sdm-html-system-text
+// sdm-body-system-background
+// sdm-body-system-text
+html.sdm-power-on {
+  &.sdm-body-system-background:not(.sdm-html-system-background) body {
+    background: inherit;
+  }
+  &.sdm-body-system-text:not(.sdm-html-system-text) body {
+    color: inherit;
+  }
+  &.sdm-html-system-background.sdm-body-system-background body {
+    background: #fff;
+  }
+  &.sdm-html-system-text.sdm-body-system-text body {
+    color: #fff;
+  }
+}

@@ -1,9 +1,24 @@
 let invertedIcons = false;
+
 chrome.storage.sync.get(["invertedIcon"], (store) => {
+  console.info(`🔥 invertedIcons store`, store.invertedIcon);
   invertedIcons = Boolean(store.invertedIcon);
 });
 
-setDefaultCustomScroll();
+chrome.storage.sync.get(
+  ["customScroll", "defaultCustomScroll"],
+  ({ customScroll, defaultCustomScroll }) => {
+    console.info(`🔥 customScroll store`, customScroll);
+    console.info(`🔥 defaultCustomScroll store`, defaultCustomScroll);
+
+    if (customScroll === undefined) {
+      chrome.storage.sync.set({ customScroll: true });
+    }
+    if (defaultCustomScroll === undefined) {
+      chrome.storage.sync.set({ defaultCustomScroll: true });
+    }
+  },
+);
 
 chrome.runtime.onMessage.addListener((message, { tab }) => {
   console.log("onMessage", { message, tab });
@@ -36,18 +51,4 @@ function changeIcon(enabled: boolean = false, tabId?: number) {
       128: `${iconFolder}/${colorPrefix}-128.png`,
     },
   });
-}
-
-function setDefaultCustomScroll() {
-  chrome.storage.sync.get(
-    ["customScroll", "defaultCustomScroll"],
-    ({ customScroll, defaultCustomScroll }) => {
-      if (customScroll === undefined) {
-        chrome.storage.sync.set({ customScroll: true });
-      }
-      if (defaultCustomScroll === undefined) {
-        chrome.storage.sync.set({ defaultCustomScroll: true });
-      }
-    },
-  );
 }

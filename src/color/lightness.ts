@@ -1,4 +1,4 @@
-import { rgbaRx } from "./check-back-color-presence";
+import { rgbaRx } from "../config";
 import { rgbToHsl } from "./rgb-to-hsl";
 import { rgbaToObject } from "./rgba-to-object";
 
@@ -13,7 +13,7 @@ export function getLightnessStatus(property: string) {
 }
 
 export function getLightnessStatusFromValue(value: number) {
-  return value > 50 ? "light" : value <= 40 ? "dark" : "medium";
+  return value > 60 ? "light" : value <= 40 ? "dark" : "medium";
 }
 
 export function computeLightnessValue(property: string) {

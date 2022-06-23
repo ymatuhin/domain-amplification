@@ -1,208 +1,84 @@
-import { decorator, logger } from "debug";
-import { handlers } from "./handlers";
-import { Status } from "./status";
-import { changeObserver } from "./utils/change-observer";
-import { checkDocumentIsLight } from "./utils/check-document-is-light";
-import { checkIsInViewport } from "./utils/check-is-in-viewport";
-import { checkIsVisible } from "./utils/check-is-visible";
-import * as chromeStore from "./utils/chrome-store";
-import { getRootBackColorStatus } from "./utils/get-root-back-color-status";
-import { getRootTextColorStatus } from "./utils/get-root-text-color-status";
-import { waitForBody } from "./utils/wait-for-body";
+import { isDefined, isUndefined } from "shared/is/defined";
+import { derived, get, writable } from "svelte/store";
+import "./client.scss";
+import { checkDocumentIsLight } from "./color";
+import { classes, host, log } from "./config";
+import * as dom from "./dom";
+import { waitForBody, waitForDom } from "./dom";
+import { initCustomScroll } from "./scroll";
+import { systemColorDetection } from "./system-colors";
 
-// magic number, seems not laggy
-const log = logger("sdm");
-const logMethod = decorator(log);
-
-const CHUNK_SIZE = 32;
-export const SELECTOR =
-  "body *:not(svg *,script,style,link,template,pre *,[contenteditable] > *)";
-
-const promises = [chromeStore.get<boolean | null>(), waitForBody()];
-Promise.all(promises).then(([storedStatus]) => {
-  log(`promise`, { storedStatus, hasBody: Boolean(document.body) });
-  new App(storedStatus as boolean | null);
+const { documentElement: html } = document;
+const $stored = writable<boolean>();
+const $isDocLight = writable<boolean>();
+const $enabled = derived([$stored, $isDocLight], ([stored, isDocLight]) => {
+  if (isDefined(stored)) return stored;
+  if (isDefined(isDocLight)) return isDocLight;
+  return undefined;
 });
 
-class App {
-  status: Status;
-  observer: ReturnType<typeof changeObserver>;
-  viewportQueue: Set<HTMLElement> = new Set();
-  regularQueue: Set<HTMLElement> = new Set();
+init();
 
-  constructor(storedStatus: boolean | null) {
-    const isLightChecker = () => checkDocumentIsLight(document.body);
-    this.status = new Status(storedStatus, isLightChecker);
-    this.observer = changeObserver(this.observerHandler.bind(this));
-    log(`status`, this.status);
-    log(`status value`, this.status.value);
+async function init() {
+  log("init");
+  html.classList.add(classes.init);
+  initCustomScroll();
 
-    // for unsubscribe
-    this.handleDomReady = this.handleDomReady.bind(this);
-    this.init();
+  chrome.runtime.onMessage.addListener((message) => {
+    log(`onMessage from background`, message);
+    if (message !== "toggle") return;
+    $stored.set(!get($enabled));
+  });
+
+  chrome.storage.sync.get([host], (store) => {
+    log("storage.sync.get", { stored: store[host] });
+    $stored.set(store[host] as boolean);
+    $stored.subscribe(onStoredChange);
+    $enabled.subscribe(onEnabledChange);
+  });
+
+  document.addEventListener("readystatechange", syncDocumentLightness);
+}
+
+async function syncDocumentLightness() {
+  await waitForBody();
+  if (isDefined(get($stored))) return;
+  const isLight = checkDocumentIsLight();
+  log("syncDocumentLightness", { isLight });
+  $isDocLight.set(isLight);
+}
+
+async function onStoredChange(stored: boolean) {
+  log("onStoredChange", { stored });
+  if (isUndefined(stored)) syncDocumentLightness();
+  else chrome.storage.sync.set({ [host]: stored });
+}
+
+async function onEnabledChange(enabled?: boolean) {
+  if (isUndefined(enabled)) return;
+  log("onEnabledChange", { enabled });
+  html.classList.remove(classes.init);
+  if (enabled) html.classList.add(classes.powerOn);
+  else html.classList.remove(classes.powerOn);
+  chrome.runtime.sendMessage({ type: "status", value: enabled });
+
+  if (enabled) {
+    await waitForBody();
+    systemColorDetection.run();
+    await waitForDom();
+    dom.run();
+    dom.start();
+  } else {
+    systemColorDetection.clean();
+    dom.stop();
+    removeClasses();
   }
+}
 
-  @logMethod
-  init() {
-    const { value } = this.status;
-    log(`send message to background`, value);
-    chrome.runtime.sendMessage({ type: "status", value });
-    chrome.runtime.onMessage.addListener((message) => {
-      log(`onMessage from background`, message);
-      if (message === "toggle") this.handleToggle();
-    });
-    chrome.storage.sync.get(
-      ["customScroll", "defaultCustomScroll"],
-      ({ customScroll, defaultCustomScroll }) => {
-        this.initCustomScroll(customScroll, defaultCustomScroll);
-      },
-    );
-
-    this.setRootAttributes();
-    if (value) this.on();
-  }
-
-  @logMethod
-  initCustomScroll(customScroll: boolean, defaultCustomScroll: boolean) {
-    const { documentElement: html } = document;
-    html.dataset.sdmCustomScroll = customScroll ? "on" : "off";
-    html.dataset.sdmDefaultCustomScroll = defaultCustomScroll ? "on" : "off";
-  }
-
-  @logMethod
-  applyStatus() {
-    const { value } = this.status;
-    log("status value", value);
-    if (value) this.on();
-    else this.off();
-  }
-
-  @logMethod
-  on() {
-    this.addListeners();
-    this.setRootAttributes();
-    this.run();
-  }
-
-  @logMethod
-  off() {
-    this.setRootAttributes();
-    this.removeListeners();
-  }
-
-  @logMethod
-  addListeners() {
-    log(`readyState`, document.readyState);
-    if (document.readyState !== "loading") {
-      this.observer.start();
-    } else {
-      document.addEventListener("DOMContentLoaded", this.handleDomReady);
-    }
-  }
-
-  @logMethod
-  handleDomReady() {
-    this.observer.start();
-    this.applyStatus();
-  }
-
-  @logMethod
-  removeListeners() {
-    this.observer.stop();
-    document.removeEventListener("DOMContentLoaded", this.handleDomReady);
-  }
-
-  @logMethod
-  observerHandler(elements: HTMLElement[]) {
-    elements.forEach((item) => this.viewportQueue.add(item));
-    this.handleQueues();
-  }
-
-  @logMethod
-  handleToggle() {
-    const value = this.status.toggle();
-    chromeStore.set(value);
-    chrome.runtime.sendMessage({ type: "status", value });
-    this.applyStatus();
-  }
-
-  @logMethod
-  setRootAttributes() {
-    const { documentElement: html } = document;
-    html.dataset.sdm = this.status.value ? "on" : "off";
-
-    delete html.dataset.sdmTextColor;
-    delete html.dataset.sdmBackColor;
-
-    html.style.overflow = "hidden";
-    html.dataset.sdmTextColor = getRootTextColorStatus();
-    html.dataset.sdmBackColor = getRootBackColorStatus();
-    html.style.overflow = "";
-  }
-
-  @logMethod
-  run() {
-    const htmlElements = Array.from(document.querySelectorAll(SELECTOR)).filter(
-      ($element) => $element instanceof HTMLElement,
-    ) as HTMLElement[];
-    htmlElements.forEach((item) => {
-      if (!checkIsVisible(item)) return;
-
-      if (checkIsInViewport(item)) {
-        this.viewportQueue.add(item);
-        this.regularQueue.delete(item);
-      } else {
-        if (this.viewportQueue.has(item)) return;
-        this.regularQueue.add(item);
-      }
-    });
-    setTimeout(() => this.handleQueues());
-  }
-
-  getChunk(queue: Set<HTMLElement>) {
-    const regularHtmlElements = [...queue].slice(0, CHUNK_SIZE);
-    regularHtmlElements.forEach((element) => queue.delete(element));
-    return regularHtmlElements;
-  }
-
-  @logMethod
-  handleQueues(): void {
-    const { viewportQueue, regularQueue } = this;
-    const isComplete = document.readyState === "complete";
-
-    log(`queues`, {
-      isComplete,
-      viewportQueue: this.viewportQueue.size,
-      regularQueue: this.regularQueue.size,
-    });
-
-    // first priority
-    if (viewportQueue.size > 0) {
-      this.handleViewportQueue();
-    }
-
-    requestIdleCallback(() => {
-      if (isComplete && regularQueue.size > 0) {
-        this.handleRegularQueue();
-      }
-    });
-  }
-
-  @logMethod
-  handleViewportQueue() {
-    const viewportChunk = this.getChunk(this.viewportQueue);
-    viewportChunk.forEach(this.handleElement.bind(this));
-    setTimeout(() => this.handleQueues(), 0);
-  }
-
-  @logMethod
-  handleRegularQueue() {
-    const regularChunk = this.getChunk(this.regularQueue);
-    regularChunk.forEach(this.handleElement.bind(this));
-    this.handleQueues();
-  }
-
-  handleElement(htmlElement: HTMLElement) {
-    handlers.forEach((handle) => handle(htmlElement));
-  }
+function removeClasses() {
+  log("removeClasses");
+  const classesArr = Object.values(classes);
+  const selector = classesArr.map((className) => `.${className}`).join(",");
+  const elements = document.querySelectorAll(selector);
+  elements.forEach((element) => element.classList.remove(...classesArr));
 }
