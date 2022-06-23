@@ -1,10 +1,12 @@
 import "./client.scss";
 import { checkDocumentIsLight } from "./color";
-import { classes, locals, log } from "./config";
+import { classes, locals, logger } from "./config";
+import * as dom from "./dom";
 import { waitForDom, waitForDomComplete } from "./dom";
 import { initCustomScroll } from "./scroll";
 import { checkSystemColors } from "./system-colors";
 
+const log = logger("client");
 const { documentElement: html } = document;
 let isRunning: boolean | null = null;
 
@@ -33,7 +35,7 @@ function addUniversalListeners() {
   });
 }
 
-function start() {
+async function start() {
   if (isRunning === true) return;
   log("start");
   isRunning = true;
@@ -41,6 +43,7 @@ function start() {
   html.classList.remove(classes.init);
   html.classList.add(classes.powerOn);
   chrome.runtime.sendMessage({ type: "status", value: isRunning });
+  dom.start();
 }
 
 function stop() {
@@ -49,6 +52,7 @@ function stop() {
   isRunning = false;
   chrome.runtime.sendMessage({ type: "status", value: isRunning });
   removeClasses();
+  dom.stop();
 }
 
 async function handleNoStoredValue() {
@@ -56,7 +60,6 @@ async function handleNoStoredValue() {
   const isLightSaved = localStorage.getItem(locals.isLight);
   log("handleNoStoredValue", { isLightSaved });
   if (isLightSaved === "true") start();
-
   checkDocumentLightness();
 }
 

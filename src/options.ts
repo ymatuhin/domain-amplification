@@ -4,7 +4,6 @@ const customScrollCheck: HTMLInputElement =
 const defaultCustomScrollCheck: HTMLInputElement = document.querySelector(
   ".js-default-custom-scroll",
 )!;
-const clearButton: HTMLInputElement = document.querySelector(".js-clear")!;
 
 chrome.storage.sync.get(
   ["invertedIcon", "customScroll", "defaultCustomScroll"],
@@ -17,7 +16,6 @@ chrome.storage.sync.get(
 );
 
 invertCheck.addEventListener("input", handleInvert, { passive: true });
-clearButton.addEventListener("click", handleClear, { passive: true });
 customScrollCheck.addEventListener("click", handleCustomScroll, {
   passive: true,
 });
@@ -30,13 +28,6 @@ function handleInvert() {
   chrome.runtime.sendMessage({ type: "icon", value: invertCheck.checked });
 }
 
-function handleClear() {
-  chrome.storage.sync.clear(() => {
-    const { lastError } = chrome.runtime;
-    location.reload();
-    alert(lastError ? `Something went wrong` : `Done`);
-  });
-}
 function handleCustomScroll() {
   defaultCustomScrollCheck.disabled = !customScrollCheck.checked;
 
@@ -46,6 +37,7 @@ function handleCustomScroll() {
     value: customScrollCheck.checked,
   });
 }
+
 function handleDefaultCustomScroll() {
   chrome.storage.sync.set({
     defaultCustomScroll: defaultCustomScrollCheck.checked,

@@ -1,13 +1,13 @@
-import { logger } from "shared/logger";
-export const log = logger("🌙");
+import { domain } from "shared/logger";
 
+export const logger = domain("🌙 sdm");
 export const chunkSize = 32;
 export const host = location.hostname.replace("www.", "");
 export const classRx = /sdm-\S*/gi;
 export const rgbaRx =
   /rgba?\(\s*\d+\.?\d*\s*,\s*\d+\.?\d*\s*,\s*\d+\.?\d*\s*(,\s*\d+\.?\d*\s*)?\)/gi;
 export const elementsSelector =
-  ":not(head,meta,title,base,script,noscript,style,link,template,pre *,svg *,[contenteditable] > *)";
+  "body :not(head,meta,title,base,script,noscript,style,link,template,pre *,svg *,[contenteditable] > *)";
 
 const base = "sdm";
 export const classes = {

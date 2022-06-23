@@ -14,7 +14,8 @@ export function observeChanges(callback: Callback) {
     handleMutations(mutations, callback);
   });
 
-  const start = () => observer.observe(document.body, observerParams);
+  const start = () =>
+    observer.observe(document.documentElement, observerParams);
   const stop = () => observer.disconnect();
 
   return { start, stop };

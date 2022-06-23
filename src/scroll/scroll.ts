@@ -1,7 +1,9 @@
-import { classes, log } from "../config";
+import { classes, logger } from "../config";
 
-const { documentElement: html } = document;
+const log = logger("custom-scroll");
+
 export const initCustomScroll = () => {
+  const { documentElement: html } = document;
   log("initCustomScroll");
   chrome.storage.sync.get(
     ["customScroll", "defaultCustomScroll"],
