@@ -1,83 +1,86 @@
-import { isDefined, isUndefined } from "shared/is/defined";
-import { derived, get, writable } from "svelte/store";
 import "./client.scss";
 import { checkDocumentIsLight } from "./color";
-import { classes, host, log } from "./config";
-import * as dom from "./dom";
-import { waitForBody, waitForDom } from "./dom";
+import { classes, log } from "./config";
+import { waitForDom, waitForDomComplete } from "./dom";
 import { initCustomScroll } from "./scroll";
-import { systemColorDetection } from "./system-colors";
+import { checkSystemColors } from "./system-colors";
 
 const { documentElement: html } = document;
-const $stored = writable<boolean>();
-const $isDocLight = writable<boolean>();
-const $enabled = derived([$stored, $isDocLight], ([stored, isDocLight]) => {
-  if (isDefined(stored)) return stored;
-  if (isDefined(isDocLight)) return isDocLight;
-  return undefined;
-});
+let isRunning: boolean | null = null;
 
 init();
 
-async function init() {
+function init() {
   log("init");
   html.classList.add(classes.init);
   initCustomScroll();
+  addUniversalListeners();
+  const stored = localStorage.getItem("sdm-enabled");
+  log("stored", { stored });
+  if (stored === null) handleNoStoredValue();
+  else if (stored === "true") start();
+  else stop();
+}
 
+function addUniversalListeners() {
+  log("addUniversalListeners");
   chrome.runtime.onMessage.addListener((message) => {
     log(`onMessage from background`, message);
     if (message !== "toggle") return;
-    $stored.set(!get($enabled));
+    console.info(`🔥 isRunning`, isRunning);
+    const wasRunning = isRunning;
+    wasRunning ? stop() : start();
+    localStorage.setItem("sdm-enabled", (!wasRunning).toString());
   });
-
-  chrome.storage.sync.get([host], (store) => {
-    log("storage.sync.get", { stored: store[host] });
-    $stored.set(store[host] as boolean);
-    $stored.subscribe(onStoredChange);
-    $enabled.subscribe(onEnabledChange);
-  });
-
-  document.addEventListener("readystatechange", syncDocumentLightness);
 }
 
-async function syncDocumentLightness() {
-  await waitForBody();
-  if (isDefined(get($stored))) return;
-  const isLight = checkDocumentIsLight();
-  log("syncDocumentLightness", { isLight });
-  $isDocLight.set(isLight);
-}
-
-async function onStoredChange(stored: boolean) {
-  log("onStoredChange", { stored });
-  if (isUndefined(stored)) syncDocumentLightness();
-  else chrome.storage.sync.set({ [host]: stored });
-}
-
-async function onEnabledChange(enabled?: boolean) {
-  if (isUndefined(enabled)) return;
-  log("onEnabledChange", { enabled });
+function start() {
+  if (isRunning === true) return;
+  log("start");
+  isRunning = true;
+  checkSystemColors();
+  console.info(`🔥 classes.init`, classes.init);
   html.classList.remove(classes.init);
-  if (enabled) html.classList.add(classes.powerOn);
-  else html.classList.remove(classes.powerOn);
-  chrome.runtime.sendMessage({ type: "status", value: enabled });
+  html.classList.add(classes.powerOn);
+  chrome.runtime.sendMessage({ type: "status", value: isRunning });
+}
 
-  if (enabled) {
-    await waitForBody();
-    systemColorDetection.run();
-    await waitForDom();
-    dom.run();
-    dom.start();
-  } else {
-    systemColorDetection.clean();
-    dom.stop();
-    removeClasses();
-  }
+function stop() {
+  if (isRunning === false) return;
+  log("stop");
+  isRunning = false;
+  chrome.runtime.sendMessage({ type: "status", value: isRunning });
+  removeClasses();
+}
+
+async function handleNoStoredValue() {
+  log("handleNoStoredValue");
+  const isLightSaved = localStorage.getItem("sdm-is-light");
+  log("handleNoStoredValue", { isLightSaved });
+  if (isLightSaved === "true") start();
+
+  checkDocumentLightness();
+}
+
+async function checkDocumentLightness() {
+  await waitForDom();
+  const isLightWhenDom = checkDocumentIsLight();
+  log("handleNoStoredValue", { isLightWhenDom });
+  localStorage.setItem("sdm-is-light", isLightWhenDom.toString());
+  isLightWhenDom ? start() : stop();
+
+  await waitForDomComplete();
+  const isLightWhenComplete = checkDocumentIsLight();
+  log("handleNoStoredValue", { isLightWhenComplete });
+  localStorage.setItem("sdm-is-light", isLightWhenDom.toString());
+  isLightWhenComplete ? start() : stop();
 }
 
 function removeClasses() {
   log("removeClasses");
-  const classesArr = Object.values(classes);
+  const classesArr = Object.values(classes).filter(
+    (className) => className !== classes.defaultCustomScrollOn,
+  );
   const selector = classesArr.map((className) => `.${className}`).join(",");
   const elements = document.querySelectorAll(selector);
   elements.forEach((element) => element.classList.remove(...classesArr));
