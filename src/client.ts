@@ -1,6 +1,6 @@
 import "./client.scss";
 import { checkDocumentIsLight } from "./color";
-import { classes, log } from "./config";
+import { classes, locals, log } from "./config";
 import { waitForDom, waitForDomComplete } from "./dom";
 import { initCustomScroll } from "./scroll";
 import { checkSystemColors } from "./system-colors";
@@ -15,7 +15,7 @@ function init() {
   html.classList.add(classes.init);
   initCustomScroll();
   addUniversalListeners();
-  const stored = localStorage.getItem("sdm-enabled");
+  const stored = localStorage.getItem(locals.enabled);
   log("stored", { stored });
   if (stored === null) handleNoStoredValue();
   else if (stored === "true") start();
@@ -27,10 +27,9 @@ function addUniversalListeners() {
   chrome.runtime.onMessage.addListener((message) => {
     log(`onMessage from background`, message);
     if (message !== "toggle") return;
-    console.info(`🔥 isRunning`, isRunning);
     const wasRunning = isRunning;
     wasRunning ? stop() : start();
-    localStorage.setItem("sdm-enabled", (!wasRunning).toString());
+    localStorage.setItem(locals.enabled, (!wasRunning).toString());
   });
 }
 
@@ -39,7 +38,6 @@ function start() {
   log("start");
   isRunning = true;
   checkSystemColors();
-  console.info(`🔥 classes.init`, classes.init);
   html.classList.remove(classes.init);
   html.classList.add(classes.powerOn);
   chrome.runtime.sendMessage({ type: "status", value: isRunning });
@@ -55,7 +53,7 @@ function stop() {
 
 async function handleNoStoredValue() {
   log("handleNoStoredValue");
-  const isLightSaved = localStorage.getItem("sdm-is-light");
+  const isLightSaved = localStorage.getItem(locals.isLight);
   log("handleNoStoredValue", { isLightSaved });
   if (isLightSaved === "true") start();
 
@@ -66,13 +64,13 @@ async function checkDocumentLightness() {
   await waitForDom();
   const isLightWhenDom = checkDocumentIsLight();
   log("handleNoStoredValue", { isLightWhenDom });
-  localStorage.setItem("sdm-is-light", isLightWhenDom.toString());
+  localStorage.setItem(locals.isLight, isLightWhenDom.toString());
   isLightWhenDom ? start() : stop();
 
   await waitForDomComplete();
   const isLightWhenComplete = checkDocumentIsLight();
   log("handleNoStoredValue", { isLightWhenComplete });
-  localStorage.setItem("sdm-is-light", isLightWhenDom.toString());
+  localStorage.setItem(locals.isLight, isLightWhenDom.toString());
   isLightWhenComplete ? start() : stop();
 }
 

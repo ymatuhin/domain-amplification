@@ -21,17 +21,11 @@ export const classes = {
   htmlSystemText: `${base}-html-system-text`,
   bodySystemBack: `${base}-body-system-background`,
   bodySystemText: `${base}-body-system-text`,
-  // should be attributes
-  // lightnessLight: `${base}-lightness-light`,
-  // lightnessMedium: `${base}-lightness-medium`,
-  // lightnessDark: `${base}-lightness-dark`,
-  // emoji: `${base}-emoji`,
-  // image: `${base}-image`,
-  // backColor: `${base}-background`,
-  // sizeXs: `${base}-size-xs`,
-  // sizeSm: `${base}-size-sm`,
-  // sizeMd: `${base}-size-md`,
-  // sizeLg: `${base}-size-lg`,
+};
+
+export const locals = {
+  enabled: "sdm-enabled",
+  isLight: "sdm-is-light",
 };
 
 export const attrs = {
