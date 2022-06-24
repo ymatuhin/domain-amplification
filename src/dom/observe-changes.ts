@@ -1,7 +1,10 @@
-import { elementsSelector } from "../config";
+import { elementsSelector, logger } from "../config";
+
+const log = logger("observer");
 
 type Callback = (elements: HTMLElement[]) => void;
 export function observeChanges(callback: Callback) {
+  log("init", { callback });
   const observerParams = {
     subtree: true,
     childList: true,
@@ -14,14 +17,21 @@ export function observeChanges(callback: Callback) {
     handleMutations(mutations, callback);
   });
 
-  const start = () =>
-    observer.observe(document.documentElement, observerParams);
-  const stop = () => observer.disconnect();
+  const start = () => {
+    log("start");
+    observer.observe(document.body, observerParams);
+  };
+
+  const stop = () => {
+    log("stop");
+    observer.disconnect();
+  };
 
   return { start, stop };
 }
 
 function handleMutations(mutations: MutationRecord[], callback: Function) {
+  log("handleMutations", mutations);
   const items = new Set<HTMLElement>();
   // for cycle is here for performance reasons
   for (let i = mutations.length - 1; i >= 0; --i) {
@@ -33,7 +43,7 @@ function handleMutations(mutations: MutationRecord[], callback: Function) {
       }
     }
   }
-  callback([...items]);
+  if (items.size) callback([...items]);
 }
 
 function getTargets(mutation: MutationRecord) {
@@ -46,7 +56,10 @@ function getTargets(mutation: MutationRecord) {
   }
   if (mutation.type === "childList") {
     const added = Array.from(mutation.addedNodes)
-      .map((node) => node.parentElement)
+      .map((node) => (node instanceof HTMLElement ? node : node.parentElement))
+      .flatMap((element) =>
+        element ? Array.from(element?.querySelectorAll(elementsSelector)) : [],
+      )
       .filter(Boolean);
     return added as HTMLElement[];
   }

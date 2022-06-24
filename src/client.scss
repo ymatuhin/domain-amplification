@@ -2,7 +2,7 @@
 @import "./scroll/scroll.scss";
 
 $itemsToInvert: "\
-  img,video,object,embed,iframe,\
+  picture,img,video,object,embed,iframe,\
   [data-sdm-back=medium][data-sdm-size=xs],\
   [data-sdm-back=dark][data-sdm-size=md],\
   [data-sdm-back=dark][data-sdm-size=lg],\

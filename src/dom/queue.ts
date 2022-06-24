@@ -1,5 +1,6 @@
 import { chunkSize, logger } from "../config";
 import { checkIsInViewport } from "./check-is-in-viewport";
+import { checkIsVisible } from "./check-is-visible";
 
 const log = logger("queue");
 
@@ -11,29 +12,33 @@ export function createQueue(handler: Handler) {
   const viewportQueue = new Set<HTMLElement>();
   const regularQueue = new Set<HTMLElement>();
 
-  const addElement = (element: HTMLElement) => {
-    if (checkIsInViewport(element)) {
-      viewportQueue.add(element);
-      regularQueue.delete(element);
-    } else {
-      if (viewportQueue.has(element)) return;
-      regularQueue.add(element);
-    }
+  const addToViewport = (element: HTMLElement) => {
+    viewportQueue.add(element);
+    regularQueue.delete(element);
   };
 
-  const addElements = (allElements: HTMLElement[], done = handleQueues) => {
-    if (allElements.length === 0) return done();
+  const addToRegular = (element: HTMLElement) => {
+    if (viewportQueue.has(element)) return;
+    regularQueue.add(element);
+  };
 
-    const elements = allElements.splice(0, chunkSize * 2);
+  const addElement = (element: HTMLElement) => {
+    if (!checkIsVisible(element)) addToRegular(element);
+    else if (checkIsInViewport(element)) addToViewport(element);
+    else addToRegular(element);
+  };
+
+  const addElements = (elements: HTMLElement[]) => {
     log("addElements", { elements });
     for (let a = elements.length - 1; a >= 0; --a) {
       addElement(elements[a]);
     }
-    addElements(allElements, done);
+    handleQueues();
   };
 
-  function getChunk(queue: Set<HTMLElement>) {
-    const elements = [...queue].slice(0, chunkSize);
+  function getChunk(queue: Set<HTMLElement>, increased: boolean) {
+    const size = increased ? chunkSize * 2 : chunkSize;
+    const elements = [...queue].slice(0, size);
     log("getChunk", elements);
     elements.forEach((element) => queue.delete(element));
     return elements;
@@ -51,7 +56,7 @@ export function createQueue(handler: Handler) {
     // first priority
     if (viewportQueue.size > 0) {
       isHandling = true;
-      const viewportChunk = getChunk(viewportQueue);
+      const viewportChunk = getChunk(viewportQueue, true);
       viewportChunk.forEach(handler);
       isHandling = false;
       setTimeout(handleQueues);
@@ -60,7 +65,7 @@ export function createQueue(handler: Handler) {
 
     if (regularQueue.size > 0) {
       isHandling = true;
-      const regularChunk = getChunk(regularQueue);
+      const regularChunk = getChunk(regularQueue, false);
       regularChunk.forEach(handler);
       isHandling = false;
       requestIdleCallback(handleQueues);

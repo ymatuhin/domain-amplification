@@ -11,8 +11,8 @@ export const start = () => {
   const nodeList = document.querySelectorAll(elementsSelector);
   const elements = Array.from(nodeList) as HTMLElement[];
   log("start", elements);
-  queue.addElements(elements);
   queue.start();
+  queue.addElements(elements);
   observer.start();
 };
 

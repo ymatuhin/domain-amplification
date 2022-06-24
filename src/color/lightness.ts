@@ -20,5 +20,5 @@ export function computeLightnessValue(property: string) {
   const { r, g, b, a } = rgbaToObject(property);
   if (a === 0) return null;
   const { l } = rgbToHsl(r, g, b);
-  return l * a;
+  return l;
 }

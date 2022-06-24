@@ -2,7 +2,7 @@ import "./client.scss";
 import { checkDocumentIsLight } from "./color";
 import { classes, locals, logger } from "./config";
 import * as dom from "./dom";
-import { waitForDom, waitForDomComplete } from "./dom";
+import { waitForBody, waitForDom, waitForDomComplete } from "./dom";
 import { initCustomScroll } from "./scroll";
 import { checkSystemColors } from "./system-colors";
 
@@ -43,6 +43,7 @@ async function start() {
   html.classList.remove(classes.init);
   html.classList.add(classes.powerOn);
   chrome.runtime.sendMessage({ type: "status", value: isRunning });
+  await waitForBody();
   dom.start();
 }
 
