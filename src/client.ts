@@ -45,6 +45,18 @@ async function start() {
   chrome.runtime.sendMessage({ type: "status", value: isRunning });
   await waitForBody();
   dom.start();
+
+  await waitForDomComplete();
+  const classesWereRemoved =
+    isRunning && html.classList.contains(classes.powerOn);
+  if (classesWereRemoved) reApplyHtmlClasses();
+}
+
+function reApplyHtmlClasses() {
+  log("reApplyHtmlClasses");
+  initCustomScroll();
+  checkSystemColors();
+  html.classList.add(classes.powerOn);
 }
 
 function stop() {

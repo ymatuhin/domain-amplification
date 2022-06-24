@@ -3,9 +3,9 @@ import { rgbaToObject } from "./rgba-to-object";
 
 export function checkBackColorPresence({ background }: CSSStyleDeclaration) {
   const colors = background.match(rgbaRx) ?? [];
-  const noTransparent = colors.filter((color) => {
+  const noSemiTransparent = colors.filter((color) => {
     const { a } = rgbaToObject(color);
-    return a !== 0;
+    return a > 0.5;
   });
-  return noTransparent.length > 0;
+  return noSemiTransparent.length > 0;
 }

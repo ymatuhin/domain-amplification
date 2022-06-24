@@ -3,6 +3,7 @@
 
 $itemsToInvert: "\
   picture,img,video,object,embed,iframe,\
+  [role=image],[role=img],\
   [data-sdm-back=medium][data-sdm-size=xs],\
   [data-sdm-back=dark][data-sdm-size=md],\
   [data-sdm-back=dark][data-sdm-size=lg],\
