@@ -1,101 +1,52 @@
+import { subscribeOnChange } from "shared/utils/subscribe-on-change";
 import "./client.scss";
 import { checkDocumentIsLight } from "./color";
-import { classes, locals, logger } from "./config";
-import * as dom from "./dom";
-import { waitForBody, waitForDom, waitForDomComplete } from "./dom";
-import { initCustomScroll } from "./scroll";
-import { checkSystemColors } from "./system-colors";
+import { elementsSelector, logger } from "./config";
+import { waitForBody, waitForDom } from "./dom";
+import { observeChanges } from "./dom/observe-changes";
+import { createQueue } from "./dom/queue";
+import { watchHtmlBody } from "./dom/watch-html-body";
+import { extensions } from "./extensions";
+import { $isEnabled, $isLight } from "./state";
 
 const log = logger("client");
-const { documentElement: html } = document;
-let isRunning: boolean | null = null;
+const queue = createQueue(changeHandler);
+const observer = observeChanges(queue.addElements);
 
 init();
 
-function init() {
+async function init() {
   log("init");
-  html.classList.add(classes.init);
-  initCustomScroll();
-  addUniversalListeners();
-  const stored = localStorage.getItem(locals.enabled);
-  log("stored", { stored });
-  if (stored === null) handleNoStoredValue();
-  else if (stored === "true") start();
-  else stop();
+  subscribeOnChange($isEnabled, (value) => (value ? start() : stop()));
+
+  await waitForBody();
+  syncLightness();
+  watchHtmlBody(syncLightness);
 }
 
-function addUniversalListeners() {
-  log("addUniversalListeners");
-  chrome.runtime.onMessage.addListener((message) => {
-    log(`onMessage from background`, message);
-    if (message !== "toggle") return;
-    const wasRunning = isRunning;
-    wasRunning ? stop() : start();
-    localStorage.setItem(locals.enabled, (!wasRunning).toString());
-  });
+function changeHandler(element: HTMLElement) {
+  extensions.forEach((ext) => ext.handle({ element }));
 }
 
 async function start() {
-  if (isRunning === true) return;
   log("start");
-  isRunning = true;
-  checkSystemColors();
-  html.classList.remove(classes.init);
-  html.classList.add(classes.powerOn);
-  chrome.runtime.sendMessage({ type: "status", value: isRunning });
-  await waitForBody();
-  dom.start();
-
-  await waitForDomComplete();
-  const classesWereRemoved =
-    isRunning && html.classList.contains(classes.powerOn);
-  if (classesWereRemoved) reApplyHtmlClasses();
-}
-
-function reApplyHtmlClasses() {
-  log("reApplyHtmlClasses");
-  initCustomScroll();
-  checkSystemColors();
-  html.classList.add(classes.powerOn);
+  await waitForDom();
+  const nodeList = document.querySelectorAll(elementsSelector);
+  const elements = Array.from(nodeList) as HTMLElement[];
+  queue.start();
+  queue.addElements(elements);
+  observer.start();
 }
 
 function stop() {
-  if (isRunning === false) return;
   log("stop");
-  isRunning = false;
-  chrome.runtime.sendMessage({ type: "status", value: isRunning });
-  removeClasses();
-  dom.stop();
+  queue.stop();
+  observer.stop();
+  extensions.forEach((ext) => ext.stop());
 }
 
-async function handleNoStoredValue() {
-  log("handleNoStoredValue");
-  const isLightSaved = localStorage.getItem(locals.isLight);
-  log("handleNoStoredValue", { isLightSaved });
-  if (isLightSaved === "true") start();
-  checkDocumentLightness();
-}
-
-async function checkDocumentLightness() {
-  await waitForDom();
-  const isLightWhenDom = checkDocumentIsLight();
-  log("handleNoStoredValue", { isLightWhenDom });
-  localStorage.setItem(locals.isLight, isLightWhenDom.toString());
-  isLightWhenDom ? start() : stop();
-
-  await waitForDomComplete();
-  const isLightWhenComplete = checkDocumentIsLight();
-  log("handleNoStoredValue", { isLightWhenComplete });
-  localStorage.setItem(locals.isLight, isLightWhenDom.toString());
-  isLightWhenComplete ? start() : stop();
-}
-
-function removeClasses() {
-  log("removeClasses");
-  const classesArr = Object.values(classes).filter(
-    (className) => className !== classes.defaultCustomScrollOn,
-  );
-  const selector = classesArr.map((className) => `.${className}`).join(",");
-  const elements = document.querySelectorAll(selector);
-  elements.forEach((element) => element.classList.remove(...classesArr));
+function syncLightness() {
+  const isLight = checkDocumentIsLight();
+  log("syncLightness", { isLight });
+  $isLight.set(isLight);
 }

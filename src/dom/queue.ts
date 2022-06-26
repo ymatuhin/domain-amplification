@@ -59,7 +59,7 @@ export function createQueue(handler: Handler) {
       const viewportChunk = getChunk(viewportQueue, true);
       viewportChunk.forEach(handler);
       isHandling = false;
-      setTimeout(handleQueues);
+      requestIdleCallback(handleQueues);
       return;
     }
 

@@ -1,49 +1,68 @@
-@import "./system-colors/system-color.scss";
-@import "./scroll/scroll.scss";
+// @layer base {
+//   :root {
+//     color-scheme: dark;
+//   }
 
-$itemsToInvert: "\
-  picture,img,video,object,embed,iframe,\
-  [role=image],[role=img],\
-  [data-sdm-back=medium][data-sdm-size=xs],\
-  [data-sdm-back=dark][data-sdm-size=md],\
-  [data-sdm-back=dark][data-sdm-size=lg],\
-  [data-sdm-image][data-sdm-size=lg],\
-  [data-sdm-emoji],\
-  [style*='url('],\
-  [id*=yandex_rtb],\
-";
+//   body {
+//     background: #fff;
+//     color: #000;
+//   }
 
-html.sdm-init {
-  color-scheme: dark;
-}
-html.sdm-init body::after {
-  content: "";
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background: hsl(0, 0%, 8%);
-  opacity: 0.5;
-  z-index: 999999;
-  user-select: none;
-  pointer-events: none;
-}
+//   input,
+//   button,
+//   select,
+//   textarea {
+//     color: #000;
+//     background: #fff;
+//   }
+// }
 
-html.sdm-power-on {
-  // ~0.9 for lighter grayish
-  filter: invert(0.9) hue-rotate(180deg) !important;
-  // transition: filter 0.3s ease-out;
+// @import "./system-colors/system-color.scss";
+// @import "./scroll/scroll.scss";
 
-  #{$itemsToInvert} {
-    filter: invert(1) hue-rotate(180deg) brightness(1.1) !important;
+// $itemsToInvert: "\
+//   picture,img,video,object,embed,iframe,\
+//   [role=image],[role=img],\
+//   [data-sdm-back=medium][data-sdm-size=xs],\
+//   [data-sdm-back=dark][data-sdm-size=md],\
+//   [data-sdm-back=dark][data-sdm-size=lg],\
+//   [data-sdm-image][data-sdm-size=lg],\
+//   [data-sdm-emoji],\
+//   [style*='url('],\
+//   [id*=yandex_rtb],\
+// ";
 
-    * {
-      filter: initial !important;
-    }
-  }
+// html.sdm-init {
+//   color-scheme: dark;
+// }
+// html.sdm-init body::after {
+//   content: "";
+//   position: fixed;
+//   top: 0;
+//   right: 0;
+//   bottom: 0;
+//   left: 0;
+//   background: hsl(0, 0%, 8%);
+//   opacity: 0.5;
+//   z-index: 999999;
+//   user-select: none;
+//   pointer-events: none;
+// }
 
-  :fullscreen {
-    filter: initial !important;
-  }
-}
+// html.sdm-power-on {
+//   // ~0.9 for lighter grayish
+//   filter: invert(0.9) hue-rotate(180deg) !important;
+//   // transition: filter 0.3s ease-out;
+
+//   // #{$itemsToInvert} {
+//   //   filter: invert(1) hue-rotate(180deg) brightness(1.1) !important;
+
+//   //   * {
+//   //     filter: initial !important;
+//   //   }
+//   // }
+
+//   // :fullscreen {
+//   //   filter: initial !important;
+//   // }
+// }

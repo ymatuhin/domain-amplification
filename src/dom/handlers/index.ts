@@ -1,10 +1,12 @@
-import backColorHandler from "./back-color";
-import emojiHandler from "./emoji";
-import sizeHandler from "./size";
+import { invert } from "./invert";
+import { rootInvert } from "./root-invert";
 
-const handlers = [backColorHandler, emojiHandler, sizeHandler];
+export type HTMLElementExtended = HTMLElement & {
+  inverted: boolean;
+};
 
-export const runHandlers = (item: HTMLElement) => {
-  const styles = getComputedStyle(item);
-  handlers.forEach((handler) => handler(item, styles));
+const handlers = [rootInvert, invert];
+
+export const runHandlers = (item: HTMLElementExtended) => {
+  handlers.forEach((handler) => handler(item));
 };

@@ -48,7 +48,6 @@ function handleMutations(mutations: MutationRecord[], callback: Function) {
 
 function getTargets(mutation: MutationRecord) {
   if (mutation.type === "attributes") {
-    if (mutation.attributeName?.startsWith("data-sdm-")) return [];
     return [mutation.target] as HTMLElement[];
   }
   if (mutation.type === "characterData") {
@@ -56,6 +55,7 @@ function getTargets(mutation: MutationRecord) {
   }
   if (mutation.type === "childList") {
     const added = Array.from(mutation.addedNodes)
+      .concat(Array.from(mutation.removedNodes))
       .map((node) => (node instanceof HTMLElement ? node : node.parentElement))
       .flatMap((element) =>
         element ? Array.from(element?.querySelectorAll(elementsSelector)) : [],
