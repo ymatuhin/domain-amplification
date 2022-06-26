@@ -7,7 +7,7 @@ export const classRx = /sdm-\S*/gi;
 export const rgbaRx =
   /rgba?\(\s*\d+\.?\d*\s*,\s*\d+\.?\d*\s*,\s*\d+\.?\d*\s*(,\s*\d+\.?\d*\s*)?\)/gi;
 export const elementsSelector =
-  "body :not(head,meta,title,base,script,noscript,style,link,template,pre *,svg *,[contenteditable] > *, picture > *, object > *, embed > *)";
+  ":not(head,meta,title,base,script,noscript,style,link,template,pre *,svg *,[contenteditable] > *, picture > *, object > *, embed > *, head > *)";
 
 const base = "sdm";
 export const classes = {

@@ -3,6 +3,7 @@ import { checkBackImagePresence } from "../../color/check-back-image-presence";
 import { attrs } from "../../config";
 
 export default (element: HTMLElement, styles = getComputedStyle(element)) => {
+  if (element.tagName === "HTML" || element.tagName === "BODY") return;
   element.removeAttribute(attrs.size);
 
   if (!checkBackColorPresence(styles) && !checkBackImagePresence(styles))
