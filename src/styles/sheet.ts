@@ -5,6 +5,8 @@ const sheet = new CSSStyleSheet();
 const saved = localStorage.getItem(locals.styles) ?? "";
 // @ts-ignore
 sheet.replaceSync(saved);
+console.info(`🔥 saved`, saved);
+console.info(`🔥 sheet.cssRules`, sheet.cssRules);
 // @ts-ignore
 document.adoptedStyleSheets = [sheet];
 
@@ -12,8 +14,9 @@ export function addRule(rule: string) {
   log("addRule", rule);
   const rulesArr = Array.from(sheet.cssRules);
   if (rulesArr.some(({ cssText }) => cssText === rule)) return;
-  sheet.insertRule(rule, sheet.cssRules.length);
+  const index = sheet.insertRule(rule, sheet.cssRules.length);
   requestIdleCallback(save);
+  return sheet.cssRules[index].cssText;
 }
 
 export function removeRule(rule: string) {

@@ -1,10 +1,12 @@
 import { logger } from "../config";
+import { waitForBody } from "./wait-for-body";
 
 const log = logger("watch-html-body");
 
 type Callback = () => void;
-export function watchHtmlBody(callback: Callback) {
+export async function watchHtmlBody(callback: Callback) {
   log("init", { callback });
+  await waitForBody();
   const observerParams = { attributes: true };
   const htmlObserver = new MutationObserver(() => {
     log("html change");

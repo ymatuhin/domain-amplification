@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@types/node": "^17.0.38",
-    "css-selector-generator": "^3.6.1",
     "shared": "link:../../shared",
     "svelte": "^3.48.0"
   }

@@ -24,14 +24,12 @@ async function init() {
     value ? start() : stop();
   });
 
-  await waitForBody();
   syncLightness();
   watchHtmlBody(syncLightness);
 }
 
-function changeHandler(inputElement: HTMLElement) {
-  const element = inputElement as HTMLElementExtended;
-  extensions.forEach((ext) => ext.handle?.({ element }));
+function changeHandler(element: HTMLElement) {
+  extensions.forEach((ext) => ext.handle?.(element as HTMLElementExtended));
 }
 
 async function start() {
@@ -55,7 +53,8 @@ function stop() {
   extensions.forEach((ext) => ext.stop?.());
 }
 
-function syncLightness() {
+async function syncLightness() {
+  await waitForBody();
   const isLight = checkDocumentIsLight();
   log("syncLightness", { isLight });
   $isLight.set(isLight);
