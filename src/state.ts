@@ -1,37 +1,38 @@
+import { logStore } from "shared/logger";
 import { subscribeOnChange } from "shared/utils/subscribe-on-change";
-import { derived, writable } from "svelte/store";
+import { derived, get, writable } from "svelte/store";
 import { locals, logger } from "./config";
 
 const log = logger("state");
 
 const defaultStored = JSON.parse(localStorage.getItem(locals.enabled)!);
 export const $stored = writable<boolean | null>(defaultStored);
+logStore("stored", log, $stored);
 
 const defaultIsLight = JSON.parse(localStorage.getItem(locals.isLight)!);
 export const $isLight = writable<boolean | null>(defaultIsLight);
+logStore("isLight", log, $isLight);
 
 export const $isEnabled = derived(
   [$stored, $isLight],
   ([stored, isLight]) => stored ?? isLight,
 );
+logStore("isEnabled", log, $isLight);
 
 chrome.runtime.onMessage.addListener((message) => {
   log(`onMessage from background`, message);
   if (message !== "toggle") return;
-  $stored.update((prev) => !prev);
+  $stored.set(!get($isEnabled));
 });
 
 subscribeOnChange($stored, (value) => {
-  log("change stored", value);
   localStorage.setItem(locals.enabled, value!.toString());
 });
 
 subscribeOnChange($isLight, (value) => {
-  log("change isLight", value);
   localStorage.setItem(locals.isLight, value!.toString());
 });
 
-subscribeOnChange($isEnabled, (value) => {
-  log("change isEnabled", value);
+$isEnabled.subscribe((value) => {
   chrome.runtime.sendMessage({ type: "status", value });
 });

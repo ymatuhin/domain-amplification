@@ -1,12 +1,15 @@
-import logger from "./logger";
+import media from "./media";
 
+export type HTMLElementExtended = HTMLElement & {
+  inverted: boolean;
+};
 export type ExtensionParams = {
-  element: HTMLElement;
+  element: HTMLElementExtended;
 };
 export type Extension = {
-  init: () => void;
-  handle: (params: ExtensionParams) => void;
-  stop: () => void;
+  init?: () => void;
+  handle?: (params: ExtensionParams) => void;
+  stop?: () => void;
 };
 
-export const extensions = [logger];
+export const extensions = [media];

@@ -6,7 +6,7 @@ const log = logger("queue");
 
 type Handler = (element: HTMLElement) => void;
 export function createQueue(handler: Handler) {
-  log("create", { handler });
+  log("init", { handler });
   let isRunning = false;
   let isHandling = false;
   const viewportQueue = new Set<HTMLElement>();
@@ -59,7 +59,7 @@ export function createQueue(handler: Handler) {
       const viewportChunk = getChunk(viewportQueue, true);
       viewportChunk.forEach(handler);
       isHandling = false;
-      requestIdleCallback(handleQueues);
+      requestAnimationFrame(handleQueues);
       return;
     }
 

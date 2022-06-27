@@ -1,5 +1,5 @@
-import { Extension } from ".";
 import { logger } from "../config";
+import type { Extension } from "./index";
 
 const log = logger("logger extension");
 
@@ -7,10 +7,10 @@ export default {
   init() {
     log("init");
   },
-  handle() {
-    log("handleElement");
+  handle(element) {
+    log("handle", element);
   },
   stop() {
-    log("onStop");
+    log("stop");
   },
 } as Extension;

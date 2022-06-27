@@ -1,25 +1,37 @@
-let map: Record<string, number> = {};
+import { locals, logger } from "../config";
 
-const style = document.createElement("style");
-style.className = "smart-dark-mode";
-document.documentElement.prepend(style);
-const sheet = style.sheet as CSSStyleSheet;
+const log = logger("stylesheet");
+const sheet = new CSSStyleSheet();
+const saved = localStorage.getItem(locals.styles) ?? "";
+// @ts-ignore
+sheet.replaceSync(saved);
+// @ts-ignore
+document.adoptedStyleSheets = [sheet];
 
-export const addRule = (selector: string, rules: string) => {
-  if (map[selector]) removeRule(selector);
-  const id = sheet.insertRule(
-    `${selector} { ${rules} }`,
-    sheet.cssRules.length,
-  );
-  map[selector] = id;
-};
+export function addRule(rule: string) {
+  log("addRule", rule);
+  const rulesArr = Array.from(sheet.cssRules);
+  if (rulesArr.some(({ cssText }) => cssText === rule)) return;
+  sheet.insertRule(rule, sheet.cssRules.length);
+  requestIdleCallback(save);
+}
 
-export const removeRule = (selector: string) => {
-  const id = map[selector];
-  if (id) sheet.deleteRule(id);
-};
+export function removeRule(rule: string) {
+  log("removeRule", rule);
+  const rulesArr = Array.from(sheet.cssRules);
+  const index = rulesArr.findIndex(({ cssText }) => cssText === rule);
+  if (index >= 0) sheet.deleteRule(index);
+  requestIdleCallback(save);
+}
 
-export const clearRules = () => {
-  Object.values(map).forEach((id) => sheet.deleteRule(id));
-  map = {};
-};
+export function clearRules() {
+  log("clearRules");
+  // @ts-ignore
+  sheet.replaceSync("");
+}
+
+function save() {
+  const rules = Array.from(sheet.cssRules);
+  const text = rules.map((rule) => rule.cssText).join("\n");
+  localStorage.setItem(locals.styles, text);
+}

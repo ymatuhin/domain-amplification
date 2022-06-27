@@ -1,4 +1,3 @@
-import { subscribeOnChange } from "shared/utils/subscribe-on-change";
 import "./client.scss";
 import { checkDocumentIsLight } from "./color";
 import { elementsSelector, logger } from "./config";
@@ -8,6 +7,7 @@ import { createQueue } from "./dom/queue";
 import { watchHtmlBody } from "./dom/watch-html-body";
 import { extensions } from "./extensions";
 import { $isEnabled, $isLight } from "./state";
+import { addRule, clearRules, rootRule } from "./styles";
 
 const log = logger("client");
 const queue = createQueue(changeHandler);
@@ -17,7 +17,12 @@ init();
 
 async function init() {
   log("init");
-  subscribeOnChange($isEnabled, (value) => (value ? start() : stop()));
+  extensions.forEach((ext) => ext.init?.());
+
+  $isEnabled.subscribe((value) => {
+    if (value === null) return;
+    value ? start() : stop();
+  });
 
   await waitForBody();
   syncLightness();
@@ -25,11 +30,12 @@ async function init() {
 }
 
 function changeHandler(element: HTMLElement) {
-  extensions.forEach((ext) => ext.handle({ element }));
+  extensions.forEach((ext) => ext.handle?.({ element }));
 }
 
 async function start() {
   log("start");
+  addRule(rootRule);
   await waitForDom();
   const nodeList = document.querySelectorAll(elementsSelector);
   const elements = Array.from(nodeList) as HTMLElement[];
@@ -40,9 +46,10 @@ async function start() {
 
 function stop() {
   log("stop");
+  clearRules();
   queue.stop();
   observer.stop();
-  extensions.forEach((ext) => ext.stop());
+  extensions.forEach((ext) => ext.stop?.());
 }
 
 function syncLightness() {
