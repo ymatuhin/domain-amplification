@@ -4,13 +4,13 @@ import type { Extension } from "./index";
 const log = logger("logger extension");
 
 export default {
-  init() {
-    log("init");
-  },
-  handle(element) {
-    log("handle", element);
+  start() {
+    log("start");
   },
   stop() {
     log("stop");
+  },
+  handle(element) {
+    log("handle", element);
   },
 } as Extension;

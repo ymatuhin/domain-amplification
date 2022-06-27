@@ -7,9 +7,9 @@ export type ExtensionParams = {
   element: HTMLElementExtended;
 };
 export type Extension = {
-  init?: () => void;
-  handle?: (params: ExtensionParams) => void;
+  start?: () => void;
   stop?: () => void;
+  handle?: (params: ExtensionParams) => void;
 };
 
 export const extensions = [media];
