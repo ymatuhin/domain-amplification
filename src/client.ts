@@ -1,5 +1,5 @@
 import { elementsSelector, logger } from "./config";
-import { waitForDom } from "./dom";
+import { waitForDom, waitForDomComplete } from "./dom";
 import { observeChanges } from "./dom/observe-changes";
 import { createQueue } from "./dom/queue";
 import { watchHtmlBody } from "./dom/watch-html-body";
@@ -46,6 +46,9 @@ async function start() {
   queue.addElements(elements);
   observer.start();
   extensions.forEach((ext) => ext.domReady?.());
+
+  await waitForDomComplete();
+  extensions.forEach((ext) => ext.domComplete?.());
 }
 
 function stop() {

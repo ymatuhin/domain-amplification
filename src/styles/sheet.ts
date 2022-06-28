@@ -1,7 +1,16 @@
+// @ts-ignore
+import rafThrottle from "raf-throttle";
 import { logger } from "../config";
 
 const log = logger("stylesheet");
 const sheet = new CSSStyleSheet();
+const listeners: Function[] = [];
+
+const notify = rafThrottle(() => {
+  const rules = Array.from(sheet.cssRules);
+  const textRules = rules.map((rule) => rule.cssText).join("\n");
+  listeners.forEach((listener) => listener(textRules));
+});
 
 // @ts-ignore
 document.adoptedStyleSheets.push(sheet);
@@ -11,6 +20,7 @@ export function addRule(rule: string) {
   const rulesArr = Array.from(sheet.cssRules);
   if (rulesArr.some(({ cssText }) => cssText === rule)) return;
   const index = sheet.insertRule(rule, sheet.cssRules.length);
+  requestAnimationFrame(notify);
   return sheet.cssRules[index].cssText;
 }
 
@@ -18,6 +28,7 @@ export function removeRule(rule: string) {
   log("remove", { rule });
   const rulesArr = Array.from(sheet.cssRules);
   const index = rulesArr.findIndex(({ cssText }) => cssText === rule);
+  requestAnimationFrame(notify);
   if (index >= 0) sheet.deleteRule(index);
 }
 
@@ -27,8 +38,8 @@ export function clearRules() {
   sheet.replaceSync("");
 }
 
-export function getRules() {
-  log("get");
-  const rules = Array.from(sheet.cssRules);
-  return rules.map((rule) => rule.cssText).join("\n");
+export function subscribe(fn: Function) {
+  if (listeners.includes(fn)) return;
+  listeners.push(fn);
+  // return () => (listeners.length = 0);
 }

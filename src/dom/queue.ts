@@ -48,11 +48,6 @@ export function createQueue(handler: Handler) {
     if (isHandling || !isRunning) return;
     if (viewportQueue.size === 0 && regularQueue.size === 0) return;
 
-    log("handleQueues", {
-      viewportQueue: viewportQueue.size,
-      regularQueue: regularQueue.size,
-    });
-
     // first priority
     if (viewportQueue.size > 0) {
       isHandling = true;

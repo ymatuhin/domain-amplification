@@ -1,7 +1,5 @@
-// @ts-ignore
-import rafThrottle from "raf-throttle";
 import { locals, logger } from "../config";
-import { getRules } from "../styles";
+import { subscribe } from "../styles";
 import type { Extension } from "./index";
 
 const log = logger("style-sync");
@@ -21,6 +19,10 @@ export default {
     sheet.replaceSync(saved);
     localStorage.removeItem(locals.styles);
     inited = true;
+    subscribe((rules: string) => {
+      log("subscribe", { rules });
+      localStorage.setItem(locals.styles, rules);
+    });
   },
   stop() {
     log("stop");
@@ -28,13 +30,8 @@ export default {
     sheet.replaceSync("");
   },
   domReady() {
-    log("domReady");
+    log("domComplete");
     // @ts-ignore
     sheet.replaceSync("");
   },
-  handle: rafThrottle(() => {
-    const rules = getRules();
-    log("handle throttled", { rules });
-    localStorage.setItem(locals.styles, rules);
-  }),
 } as Extension;

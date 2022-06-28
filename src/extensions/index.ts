@@ -15,16 +15,18 @@ export type Extension = {
   start?: () => void;
   stop?: () => void;
   domReady?: () => void;
+  domComplete?: () => void;
   handleElement?: (element: HTMLElementExtended) => void;
   handleHtmlBody?: () => void;
 };
 
 export const extensions = [
+  // styleSync before everything
+  styleSync,
   media,
   scroll,
   documentColors,
   documentLightness,
   fullscreen,
   background,
-  styleSync,
 ];
