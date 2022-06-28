@@ -1,6 +1,7 @@
 import background from "./background";
 import documentColors from "./document-colors";
 import documentLightness from "./document-lightness";
+import emoji from "./emoji";
 import fullscreen from "./full-screen";
 import media from "./media";
 import scroll from "./scroll";
@@ -29,4 +30,5 @@ export const extensions = [
   documentLightness,
   fullscreen,
   background,
+  emoji,
 ];
