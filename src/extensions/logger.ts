@@ -10,7 +10,7 @@ export default {
   stop() {
     log("stop");
   },
-  handle(element) {
+  handleElement(element) {
     log("handle", element);
   },
 } as Extension;

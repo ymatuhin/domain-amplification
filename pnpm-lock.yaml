@@ -3,6 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@types/chrome': ^0.0.190
   '@types/node': ^17.0.38
+  raf-throttle: ^2.0.5
   sass: ^1.52.3
   shared: link:../../shared
   svelte: ^3.48.0
@@ -11,6 +12,7 @@ specifiers:
 
 dependencies:
   '@types/node': 17.0.45
+  raf-throttle: 2.0.5
   shared: link:../../shared
   svelte: 3.48.0
 
@@ -389,6 +391,10 @@ packages:
       picocolors: 1.0.0
       source-map-js: 1.0.2
     dev: true
+
+  /raf-throttle/2.0.5:
+    resolution: {integrity: sha512-0cRR3glc9bvdTW+mgw/DoSXkK7bnLZlWC+RtD3mubJhDSWKjPO5o2j/i7nOvIfmvAKgRtKPSwQcPI6MvYeDeYw==}
+    dev: false
 
   /readdirp/3.6.0:
     resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}

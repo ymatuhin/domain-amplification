@@ -11,6 +11,8 @@ export const elementsSelector =
 export const mediaSelector =
   "picture,img,video,object,embed,iframe,[role=image],[role=img]";
 
+// svg image (?)
+
 const base = "sdm";
 export const classes = {
   init: `${base}-init`,

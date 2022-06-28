@@ -12,7 +12,7 @@ export default {
     addRule(rule1);
     addRule(rule2);
   },
-  handle(element) {
+  handleElement(element) {
     if (!checkIsScrollable(element)) return;
     if (!checkInsideInverted(element)) return;
     const selector = getSelector(element);
