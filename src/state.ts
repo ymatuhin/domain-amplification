@@ -17,7 +17,7 @@ export const $isEnabled = derived(
   [$stored, $isLight],
   ([stored, isLight]) => stored ?? isLight,
 );
-logStore("isEnabled", log, $isLight);
+logStore("isEnabled", log, $isEnabled);
 
 chrome.runtime.onMessage.addListener((message) => {
   log(`onMessage from background`, message);

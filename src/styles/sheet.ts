@@ -18,6 +18,7 @@ document.adoptedStyleSheets.push(sheet);
 export function addRule(rule: string) {
   log("add", { rule });
   const rulesArr = Array.from(sheet.cssRules);
+  // TODO: fix somehow false comparison here due to diff in input and parsed values
   if (rulesArr.some(({ cssText }) => cssText === rule)) return;
   const index = sheet.insertRule(rule, sheet.cssRules.length);
   requestAnimationFrame(notify);
