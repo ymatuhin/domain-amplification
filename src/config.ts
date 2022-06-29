@@ -9,7 +9,7 @@ export const rgbaRx =
 export const elementsSelector =
   ":not(head,meta,title,base,script,noscript,style,link,template,pre *,svg *,[contenteditable] > *, picture > *, object > *, embed > *, head > *)";
 export const mediaSelector =
-  "picture,img,video,object,embed,iframe,[role=image],[role=img]";
+  "picture,img,video,object,embed,iframe,[role=image],[role=img],[style*='url(']";
 
 // svg image (?)
 

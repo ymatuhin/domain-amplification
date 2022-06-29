@@ -58,7 +58,12 @@ function getTargets(mutation: MutationRecord) {
       .concat(Array.from(mutation.removedNodes))
       .map((node) => (node instanceof HTMLElement ? node : node.parentElement))
       .flatMap((element) =>
-        element ? Array.from(element?.querySelectorAll(elementsSelector)) : [],
+        element
+          ? [
+              element,
+              ...Array.from(element?.querySelectorAll(elementsSelector)),
+            ]
+          : [element],
       )
       .filter(Boolean);
     return added as HTMLElement[];

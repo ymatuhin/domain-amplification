@@ -39,7 +39,11 @@ export function clearRules() {
 }
 
 export function subscribe(fn: Function) {
-  if (listeners.includes(fn)) return;
-  listeners.push(fn);
-  // return () => (listeners.length = 0);
+  if (!listeners.includes(fn)) {
+    listeners.push(fn);
+  }
+  return () => {
+    const index = listeners.indexOf(fn);
+    listeners.splice(index, 1);
+  };
 }

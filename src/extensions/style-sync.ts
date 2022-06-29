@@ -9,17 +9,29 @@ const sheet = new CSSStyleSheet();
 document.adoptedStyleSheets.push(sheet);
 
 let inited = false;
+let unsubscribe: Function;
+
+export const pause = () => {
+  // @ts-ignore
+  document.adoptedStyleSheets = document.adoptedStyleSheets.filter(
+    (item: any) => item !== sheet,
+  );
+};
+export const resume = () => {
+  // @ts-ignore
+  document.adoptedStyleSheets.push(sheet);
+};
 
 export default {
   start() {
     if (inited) return;
+    inited = true;
     const saved = localStorage.getItem(locals.styles) ?? "";
     log("init", { saved });
     // @ts-ignore
     sheet.replaceSync(saved);
     localStorage.removeItem(locals.styles);
-    inited = true;
-    subscribe((rules: string) => {
+    unsubscribe = subscribe((rules: string) => {
       log("subscribe", { rules });
       localStorage.setItem(locals.styles, rules);
     });
@@ -28,10 +40,12 @@ export default {
     log("stop");
     // @ts-ignore
     sheet.replaceSync("");
+    unsubscribe?.();
   },
-  domReady() {
+  domComplete() {
     log("domComplete");
     // @ts-ignore
     sheet.replaceSync("");
+    unsubscribe?.();
   },
 } as Extension;

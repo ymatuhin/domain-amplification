@@ -14,7 +14,7 @@ export default {
   },
   handleElement(element) {
     if (!checkIsScrollable(element)) return;
-    if (!checkInsideInverted(element)) return;
+    if (!element.inverted && !checkInsideInverted(element)) return;
     const selector = getSelector(element);
     addRule(`${selector} { color-scheme: dark; }`);
   },

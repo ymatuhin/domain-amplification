@@ -1,4 +1,6 @@
 import { mediaSelector } from "../config";
+import { checkInsideInverted } from "../dom/check-inside-inverted";
+import { getSelector } from "../dom/get-selector";
 import { addRule, mediaFilter, removeRule, resetFilter } from "../styles";
 import type { Extension } from "./index";
 
@@ -20,5 +22,17 @@ export default {
   stop() {
     removeRule(rule1);
     removeRule(rule2);
+  },
+  handleElement(element) {
+    if (!element.matches(mediaSelector)) return;
+    if (element.matches(resetSelector)) return;
+
+    if (checkInsideInverted(element)) {
+      const selector = getSelector(element);
+      addRule(`${selector} { ${resetFilter} }`);
+    } else {
+      element.inverted = true;
+    }
+    // requestAnimationFrame(() => this.handleElement!(element));
   },
 } as Extension;

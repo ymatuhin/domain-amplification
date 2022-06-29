@@ -2,6 +2,7 @@ export function getSelector(
   element: HTMLElement,
   selectors: string[] = [],
 ): string {
+  if (!element) return selectors.join(" > ");
   const tag = element.tagName.toLowerCase();
   if (tag === "body") return selectors.join(" > ");
 
@@ -10,16 +11,8 @@ export function getSelector(
     selector = `#${element.id}`;
     return [selector, ...selectors].join(" > ");
   }
-  Array.from(element.attributes)
-    .filter(
-      (attr) =>
-        attr.nodeName !== "class" &&
-        attr.nodeName !== "style" &&
-        attr.nodeName !== "src",
-    )
-    .forEach((attr) => (selector += `[${attr.nodeName}="${attr.nodeValue}"]`));
   const index = getElementIndex(element, selector);
-  if (index > 1) selector += `:nth-of-type(${index})`;
+  selector += `:nth-of-type(${index})`;
 
   return getSelector(element.parentElement!, [selector, ...selectors]);
 }

@@ -23,12 +23,12 @@ export type Extension = {
 
 export const extensions = [
   // styleSync before everything
-  styleSync,
-  media,
-  scroll,
   documentColors,
+  styleSync,
+  scroll,
   documentLightness,
   fullscreen,
   background,
   emoji,
+  media,
 ];
