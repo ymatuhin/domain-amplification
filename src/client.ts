@@ -19,6 +19,7 @@ async function init() {
   extensions.forEach((ext) => ext.init?.());
 
   $isEnabled.subscribe((value) => {
+    log("$isEnabled", value);
     if (value === null) return;
     value ? start() : stop();
   });
@@ -40,11 +41,12 @@ async function start() {
   extensions.forEach((ext) => ext.start?.());
 
   await waitForDom();
+
+  observer.start();
   const nodeList = document.querySelectorAll(elementsSelector);
   const elements = Array.from(nodeList) as HTMLElement[];
   queue.start();
   queue.addElements(elements);
-  observer.start();
   extensions.forEach((ext) => ext.domReady?.());
 
   await waitForDomComplete();

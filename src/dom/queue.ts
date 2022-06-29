@@ -30,9 +30,7 @@ export function createQueue(handler: Handler) {
 
   const addElements = (elements: HTMLElement[]) => {
     log("addElements", { elements });
-    for (let a = elements.length - 1; a >= 0; --a) {
-      addElement(elements[a]);
-    }
+    elements.forEach(addElement);
     handleQueues();
   };
 

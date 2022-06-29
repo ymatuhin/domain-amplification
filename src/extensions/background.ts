@@ -15,12 +15,13 @@ const log = logger("background");
 
 export default {
   handleElement(element) {
+    if (element instanceof HTMLHtmlElement) return;
+    if (element instanceof HTMLBodyElement) return;
     if (element.matches(mediaSelector)) return;
     if (element.closest(mediaSelector)) return;
     if (checkInsideInverted(element)) return;
 
     if (element.isConnected) {
-      log("connected, not inside inverted", { element });
       const styles = getComputedStyle(element);
       const hasImage = checkBackImagePresence(styles);
       const hasColor = checkBackColorPresence(styles);
@@ -30,10 +31,12 @@ export default {
       const size = getElementSize(element);
       const selector = getSelector(element);
       const rule = `${selector} { ${mediaFilter}}`;
-      log("data", { element, selector, size, hasImage, hasColor });
 
       if (hasImage) {
-        if (size > 20) {
+        const isAvatarOrLogo =
+          element.className.includes("logo") ||
+          element.className.includes("avatar");
+        if (isAvatarOrLogo || size > 20) {
           addRule(rule);
           element.inverted = true;
         }
@@ -43,11 +46,9 @@ export default {
           (color) => rgbaToObject(color).a !== 0,
         );
         const lightness = noTransparent.map(computeLightnessValue) as number[];
-        log("data2", { element, selector, colors, noTransparent, lightness });
 
         if (!lightness.length) return;
         const avg = lightness.reduce((a, b) => a + b) / lightness.length;
-        log("data3", { element, selector, avg });
         if (avg < 40 && size > 4) {
           addRule(rule);
           element.inverted = true;

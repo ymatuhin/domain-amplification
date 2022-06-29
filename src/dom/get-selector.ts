@@ -8,7 +8,8 @@ export function getSelector(
 
   let selector = tag;
   if (element.id) {
-    selector = `#${element.id}`;
+    // special for invalid number id, like id="444"
+    selector = `[id="${element.id}"]`;
     return [selector, ...selectors].join(" > ");
   }
   const index = getElementIndex(element, selector);

@@ -1,6 +1,8 @@
 export function checkIsScrollable(element: HTMLElement) {
   // Compare the height to see if the element has scrollable content
-  const hasScrollableContent = element.scrollHeight > element.clientHeight;
+  // 10 is for falsy checks
+  // TODO: check why it's falsy too often
+  const hasScrollableContent = element.scrollHeight > element.clientHeight + 10;
 
   // It's not enough because the element's `overflow-y` style can be set as
   // * `hidden`
