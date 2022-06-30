@@ -11,31 +11,8 @@ export const elementsSelector =
 export const mediaSelector =
   "picture,img,video,object,embed,iframe,[role=image],[role=img],[style*='url(']";
 
-// svg image (?)
-
-const base = "sdm";
-export const classes = {
-  init: `${base}-init`,
-  schemeLight: `${base}-scheme-light`,
-  schemeDark: `${base}-scheme-dark`,
-  powerOn: `${base}-power-on`,
-  customScrollOn: `${base}-custom-scroll-on`,
-  defaultCustomScrollOn: `${base}-default-custom-scroll-on`,
-  htmlSystemBack: `${base}-html-system-background`,
-  htmlSystemText: `${base}-html-system-text`,
-  bodySystemBack: `${base}-body-system-background`,
-  bodySystemText: `${base}-body-system-text`,
-};
-
 export const locals = {
   enabled: "sdm-enabled",
   isLight: "sdm-is-light",
   styles: "sdm-styles",
-};
-
-export const attrs = {
-  emoji: `data-${base}-emoji`,
-  image: `data-${base}-image`,
-  back: `data-${base}-back`,
-  size: `data-${base}-size`,
 };

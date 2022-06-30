@@ -1,25 +1,25 @@
 const invertCheck: HTMLInputElement = document.querySelector(".js-invert")!;
-const customScrollCheck: HTMLInputElement =
-  document.querySelector(".js-custom-scroll")!;
-const defaultCustomScrollCheck: HTMLInputElement = document.querySelector(
-  ".js-default-custom-scroll",
+const darkScrollCheck: HTMLInputElement =
+  document.querySelector(".js-dark-scroll")!;
+const darkScrollByDefaultCheck: HTMLInputElement = document.querySelector(
+  ".js-default-dark-scroll",
 )!;
 
 chrome.storage.sync.get(
-  ["invertedIcon", "customScroll", "defaultCustomScroll"],
-  ({ invertedIcon, customScroll, defaultCustomScroll }) => {
+  ["invertedIcon", "darkScroll", "darkScrollByDefault"],
+  ({ invertedIcon, darkScroll, darkScrollByDefault }) => {
     invertCheck.checked = Boolean(invertedIcon);
-    customScrollCheck.checked = customScroll ?? true;
-    defaultCustomScrollCheck.disabled = !customScrollCheck.checked;
-    defaultCustomScrollCheck.checked = defaultCustomScroll ?? true;
+    darkScrollCheck.checked = darkScroll ?? true;
+    darkScrollByDefaultCheck.disabled = !darkScrollCheck.checked;
+    darkScrollByDefaultCheck.checked = darkScrollByDefault ?? true;
   },
 );
 
 invertCheck.addEventListener("input", handleInvert, { passive: true });
-customScrollCheck.addEventListener("click", handleCustomScroll, {
+darkScrollCheck.addEventListener("click", handleDarkScroll, {
   passive: true,
 });
-defaultCustomScrollCheck.addEventListener("click", handleDefaultCustomScroll, {
+darkScrollByDefaultCheck.addEventListener("click", handleDarkScrollByDefault, {
   passive: true,
 });
 
@@ -28,22 +28,22 @@ function handleInvert() {
   chrome.runtime.sendMessage({ type: "icon", value: invertCheck.checked });
 }
 
-function handleCustomScroll() {
-  defaultCustomScrollCheck.disabled = !customScrollCheck.checked;
+function handleDarkScroll() {
+  darkScrollByDefaultCheck.disabled = !darkScrollCheck.checked;
 
-  chrome.storage.sync.set({ customScroll: customScrollCheck.checked });
+  chrome.storage.sync.set({ darkScroll: darkScrollCheck.checked });
   chrome.runtime.sendMessage({
-    type: "custom-scroll",
-    value: customScrollCheck.checked,
+    type: "dark-scroll",
+    value: darkScrollCheck.checked,
   });
 }
 
-function handleDefaultCustomScroll() {
+function handleDarkScrollByDefault() {
   chrome.storage.sync.set({
-    defaultCustomScroll: defaultCustomScrollCheck.checked,
+    darkScrollByDefault: darkScrollByDefaultCheck.checked,
   });
   chrome.runtime.sendMessage({
-    type: "default-custom-scroll",
-    value: defaultCustomScrollCheck.checked,
+    type: "default-dark-scroll",
+    value: darkScrollByDefaultCheck.checked,
   });
 }

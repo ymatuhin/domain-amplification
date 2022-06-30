@@ -6,16 +6,16 @@ chrome.storage.sync.get(["invertedIcon"], (store) => {
 });
 
 chrome.storage.sync.get(
-  ["customScroll", "defaultCustomScroll"],
-  ({ customScroll, defaultCustomScroll }) => {
-    console.info(`🔥 customScroll store`, customScroll);
-    console.info(`🔥 defaultCustomScroll store`, defaultCustomScroll);
+  ["darkScroll", "darkScrollByDefault"],
+  ({ darkScroll, darkScrollByDefault }) => {
+    console.info(`🔥 darkScroll store`, darkScroll);
+    console.info(`🔥 darkScrollByDefault store`, darkScrollByDefault);
 
-    if (customScroll === undefined) {
-      chrome.storage.sync.set({ customScroll: true });
+    if (darkScroll === undefined) {
+      chrome.storage.sync.set({ darkScroll: true });
     }
-    if (defaultCustomScroll === undefined) {
-      chrome.storage.sync.set({ defaultCustomScroll: true });
+    if (darkScrollByDefault === undefined) {
+      chrome.storage.sync.set({ darkScrollByDefault: true });
     }
   },
 );
