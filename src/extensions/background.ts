@@ -8,7 +8,7 @@ import { logger, mediaSelector, rgbaRx } from "../config";
 import { checkInsideInverted } from "../dom/check-inside-inverted";
 import { getElementSize } from "../dom/get-element-size";
 import { getSelector } from "../dom/get-selector";
-import { addRule, mediaFilter, removeRule } from "../styles";
+import { addRule, makeRule, mediaFilter, removeRule } from "../styles";
 import type { Extension } from "./index";
 
 const log = logger("background");
@@ -30,7 +30,7 @@ export default {
 
       const size = getElementSize(element);
       const selector = getSelector(element);
-      const rule = `${selector} { ${mediaFilter}}`;
+      const rule = makeRule(`${selector} { ${mediaFilter}}`);
 
       if (hasImage) {
         const isAvatarOrLogo =
@@ -56,7 +56,7 @@ export default {
       }
     } else {
       const selector = getSelector(element);
-      const rule = `${selector} { ${mediaFilter}}`;
+      const rule = makeRule(`${selector} { ${mediaFilter}}`);
       log("unconnected", { element, selector });
       removeRule(rule);
     }

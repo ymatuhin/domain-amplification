@@ -1,13 +1,13 @@
 import { rgbaToObject } from "../color";
 import { logger } from "../config";
 import { waitForBody } from "../dom";
-import { addRule, removeRule } from "../styles";
+import { addRule, makeRule, removeRule } from "../styles";
 import type { Extension } from "./index";
 import { pause, resume } from "./style-sync";
 
 const log = logger("document-colors");
-const ruleHtmlBg = "html { background: white; }";
-const ruleHtmlColor = "html { color: black; }";
+const ruleHtmlBg = makeRule("html { background: white; }");
+const ruleHtmlColor = makeRule("html { color: black; }");
 
 let ruleHtmlBgAsBody = "";
 
@@ -39,7 +39,9 @@ function reApply() {
 
   if (!htmlHasBgColor) {
     if (bodyHasBgColor) {
-      ruleHtmlBgAsBody = `html { background: ${bodyStyles.backgroundColor}; }`;
+      ruleHtmlBgAsBody = makeRule(
+        `html { background: ${bodyStyles.backgroundColor}; }`,
+      );
       addRule(ruleHtmlBgAsBody);
     } else {
       addRule(ruleHtmlBg);

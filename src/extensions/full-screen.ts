@@ -1,7 +1,7 @@
-import { addRule, removeRule } from "../styles";
+import { addRule, makeRule, removeRule } from "../styles";
 import type { Extension } from "./index";
 
-const rule = `:fullscreen { filter: initial !important; }`;
+const rule = makeRule(`:fullscreen { filter: initial !important; }`);
 
 export default {
   start() {

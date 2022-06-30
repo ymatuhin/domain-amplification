@@ -33,6 +33,12 @@ export function removeRule(rule: string) {
   if (index >= 0) sheet.deleteRule(index);
 }
 
+export function makeRule(rule: string) {
+  const sheet = new CSSStyleSheet();
+  sheet.insertRule(rule);
+  return sheet.cssRules[0].cssText;
+}
+
 export function clearRules() {
   log("clear");
   // @ts-ignore

@@ -1,7 +1,13 @@
 import { mediaSelector } from "../config";
 import { checkInsideInverted } from "../dom/check-inside-inverted";
 import { getSelector } from "../dom/get-selector";
-import { addRule, mediaFilter, removeRule, resetFilter } from "../styles";
+import {
+  addRule,
+  makeRule,
+  mediaFilter,
+  removeRule,
+  resetFilter,
+} from "../styles";
 import type { Extension } from "./index";
 
 const mediaSelectorArr = mediaSelector.split(",");
@@ -11,8 +17,8 @@ const resetSelector = mediaSelectorArr
   })
   .join(",");
 
-const rule1 = `${mediaSelector} { ${mediaFilter} }`;
-const rule2 = `${resetSelector} { ${resetFilter} }`;
+const rule1 = makeRule(`${mediaSelector} { ${mediaFilter} }`);
+const rule2 = makeRule(`${resetSelector} { ${resetFilter} }`);
 
 export default {
   start() {
@@ -29,7 +35,8 @@ export default {
 
     if (checkInsideInverted(element)) {
       const selector = getSelector(element);
-      addRule(`${selector} { ${resetFilter} }`);
+      const rule = makeRule(`${selector} { ${resetFilter} }`);
+      addRule(rule);
     } else {
       element.inverted = true;
     }

@@ -1,11 +1,13 @@
 import { checkInsideInverted } from "../dom/check-inside-inverted";
 import { checkIsScrollable } from "../dom/check-is-scrollable";
 import { getSelector } from "../dom/get-selector";
-import { addRule, removeRule } from "../styles";
+import { addRule, makeRule, removeRule } from "../styles";
 import type { Extension } from "./index";
 
-const rule1 = `:root { color-scheme: dark; }`;
-const rule2 = `body, input, button, textarea, select { color-scheme: light; }`;
+const rule1 = makeRule(`:root { color-scheme: dark; }`);
+const rule2 = makeRule(
+  `body, input, button, textarea, select { color-scheme: light; }`,
+);
 
 export default {
   start() {
@@ -13,10 +15,13 @@ export default {
     addRule(rule2);
   },
   handleElement(element) {
+    if (element instanceof HTMLHtmlElement) return;
+    if (element instanceof HTMLBodyElement) return;
     if (!checkIsScrollable(element)) return;
     if (!element.inverted && !checkInsideInverted(element)) return;
     const selector = getSelector(element);
-    addRule(`${selector} { color-scheme: dark; }`);
+    const rule = makeRule(`${selector} { color-scheme: dark; }`);
+    addRule(rule);
   },
   stop() {
     removeRule(rule1);
