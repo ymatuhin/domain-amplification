@@ -23,8 +23,7 @@
       "matches": ["<all_urls>"],
       "js": ["client.js"],
       "run_at": "document_start",
-      "all_frames": false,
-      "match_about_blank": true
+      "all_frames": false
     }
   ],
   "permissions": ["storage", "tabs"],
