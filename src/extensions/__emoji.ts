@@ -1,4 +1,4 @@
-import { attrs } from "../../config";
+import { attrs } from "../config";
 
 const emojiRx = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
 

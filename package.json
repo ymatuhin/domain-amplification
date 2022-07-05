@@ -3,18 +3,21 @@
   "private": true,
   "version": "0.0.1",
   "scripts": {
+    "start": "npm run build",
     "dev": "vite build --watch -m development --emptyOutDir",
     "build": "vite build --emptyOutDir",
     "preview": "vite preview"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.190",
+    "@types/debounce": "^1.2.1",
     "sass": "^1.52.3",
     "typescript": "^4.7.4",
     "vite": "^2.9.9"
   },
   "dependencies": {
     "@types/node": "^17.0.38",
+    "debounce": "^1.2.1",
     "raf-throttle": "^2.0.5",
     "shared": "link:../../shared",
     "svelte": "^3.48.0"

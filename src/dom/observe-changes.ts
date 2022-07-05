@@ -10,7 +10,7 @@ export function observeChanges(callback: Callback) {
     childList: true,
     attributes: true,
     characterData: true,
-    attributeOldValue: true,
+    // attributeOldValue: true,
   };
   // request
   const observer = new MutationObserver((mutations) => {
@@ -18,7 +18,7 @@ export function observeChanges(callback: Callback) {
   });
   const start = () => {
     log("start");
-    observer.observe(document.body, observerParams);
+    observer.observe(document.documentElement, observerParams);
   };
   const stop = () => {
     log("stop");

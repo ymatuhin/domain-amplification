@@ -1,37 +1,29 @@
+import { MiddlewareParams } from ".";
 import { rgbaToObject } from "../color";
 import { logger } from "../config";
 import { waitForBody } from "../dom";
 import { addRule, makeRule, removeRule } from "../styles";
-import type { Extension } from "./index";
-import { pause, resume } from "./style-sync";
+import { pause } from "./load-styles";
 
-const log = logger("document-colors");
+const log = logger("ext:document-colors");
 const ruleHtmlBg = makeRule("html { background: white; }");
 const ruleHtmlColor = makeRule("html { color: black; }");
-
 let ruleHtmlBgAsBody = "";
 
-export default {
-  async start() {
-    log("start");
-    await waitForBody();
-    reApply();
-  },
-  stop() {
-    removeRule(ruleHtmlBg);
-    removeRule(ruleHtmlColor);
-    if (ruleHtmlBgAsBody) removeRule(ruleHtmlBgAsBody);
-  },
-  domReady: reApply,
-  domComplete: reApply,
-  handleHtmlBody() {
-    this.stop!();
-    this.start!();
-  },
-} as Extension;
+export default function (params: MiddlewareParams) {
+  const { status, isDocument } = params;
 
-function reApply() {
-  pause();
+  if (status === "start" || isDocument) apply();
+
+  return params;
+}
+
+async function apply() {
+  log("apply");
+  if (!document.body) await waitForBody();
+
+  cleanUp();
+  const resume = pause();
   const htmlStyles = getComputedStyle(document.documentElement);
   const bodyStyles = getComputedStyle(document.body);
   const htmlHasBgColor = rgbaToObject(htmlStyles.backgroundColor).a > 0;
@@ -39,9 +31,8 @@ function reApply() {
 
   if (!htmlHasBgColor) {
     if (bodyHasBgColor) {
-      ruleHtmlBgAsBody = makeRule(
-        `html { background: ${bodyStyles.backgroundColor}; }`,
-      );
+      const ruleTemplate = `html { background: ${bodyStyles.backgroundColor}; }`;
+      ruleHtmlBgAsBody = makeRule(ruleTemplate);
       addRule(ruleHtmlBgAsBody);
     } else {
       addRule(ruleHtmlBg);
@@ -53,4 +44,10 @@ function reApply() {
     htmlStyles.color === "rgb(255, 255, 255)";
   if (htmlSystemColor) addRule(ruleHtmlColor);
   resume();
+}
+
+function cleanUp() {
+  removeRule(ruleHtmlBg);
+  removeRule(ruleHtmlColor);
+  if (ruleHtmlBgAsBody) removeRule(ruleHtmlBgAsBody);
 }

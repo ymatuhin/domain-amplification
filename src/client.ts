@@ -1,62 +1,50 @@
-import { elementsSelector, logger } from "./config";
-import { waitForDom, waitForDomComplete } from "./dom";
+import { elementsSelector, locals, logger } from "./config";
+import { waitForDom } from "./dom";
 import { observeChanges } from "./dom/observe-changes";
 import { createQueue } from "./dom/queue";
-import { watchHtmlBody } from "./dom/watch-html-body";
-import type { HTMLElementExtended } from "./extensions";
-import { extensions } from "./extensions";
+import { runMiddleware } from "./extensions";
 import { $isEnabled } from "./state";
 import { addRule, clearRules, rootRule } from "./styles";
 
 const log = logger("client");
-const queue = createQueue(changeHandler);
+const noSavedStyles = localStorage.getItem(locals.styles) === null;
+const queue = createQueue(changeHandler, noSavedStyles);
 const observer = observeChanges(queue.addElements);
 
 init();
 
 async function init() {
   log("init");
-  extensions.forEach((ext) => ext.init?.());
+  runMiddleware({ status: "init" });
 
   $isEnabled.subscribe((value) => {
     log("$isEnabled", value);
     if (value === null) return;
     value ? start() : stop();
   });
-
-  watchHtmlBody(() => {
-    extensions.forEach((ext) => ext.handleHtmlBody?.());
-  });
 }
 
 function changeHandler(element: HTMLElement) {
-  extensions.forEach((ext) =>
-    ext.handleElement?.(element as HTMLElementExtended),
-  );
+  runMiddleware({ status: "update", element });
 }
 
 async function start() {
   log("start");
   addRule(rootRule);
-  extensions.forEach((ext) => ext.start?.());
+  runMiddleware({ status: "start" });
 
   await waitForDom();
-
   observer.start();
   const nodeList = document.querySelectorAll(elementsSelector);
   const elements = Array.from(nodeList) as HTMLElement[];
   queue.start();
   queue.addElements(elements);
-  extensions.forEach((ext) => ext.domReady?.());
-
-  await waitForDomComplete();
-  extensions.forEach((ext) => ext.domComplete?.());
 }
 
 function stop() {
   log("stop");
+  runMiddleware({ status: "stop" });
   clearRules();
   queue.stop();
   observer.stop();
-  extensions.forEach((ext) => ext.stop?.());
 }

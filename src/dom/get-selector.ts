@@ -3,17 +3,20 @@ export function getSelector(
   selectors: string[] = [],
 ): string {
   if (!element) return selectors.join(" > ");
+  if (element instanceof HTMLHtmlElement && selectors.length)
+    return selectors.join(" > ");
+
   const tag = element.tagName.toLowerCase();
-  if (tag === "body") return selectors.join(" > ");
 
   let selector = tag;
   if (element.id) {
-    // special for invalid number id, like id="444"
+    // special for invalid numeric id, like id="444"
     selector = `[id="${element.id}"]`;
     return [selector, ...selectors].join(" > ");
+  } else if (tag !== "html" && tag !== "body") {
+    const index = getElementIndex(element, selector);
+    selector += `:nth-of-type(${index})`;
   }
-  const index = getElementIndex(element, selector);
-  selector += `:nth-of-type(${index})`;
 
   return getSelector(element.parentElement!, [selector, ...selectors]);
 }

@@ -1,11 +1,10 @@
 import { chunkSize, logger } from "../config";
 import { checkIsInViewport } from "./check-is-in-viewport";
-import { checkIsVisible } from "./check-is-visible";
 
 const log = logger("queue");
 
 type Handler = (element: HTMLElement) => void;
-export function createQueue(handler: Handler) {
+export function createQueue(handler: Handler, firstTime: boolean) {
   log("init", { handler });
   let isRunning = false;
   let isHandling = false;
@@ -23,8 +22,7 @@ export function createQueue(handler: Handler) {
   };
 
   const addElement = (element: HTMLElement) => {
-    if (!checkIsVisible(element)) addToRegular(element);
-    else if (checkIsInViewport(element)) addToViewport(element);
+    if (checkIsInViewport(element)) addToViewport(element);
     else addToRegular(element);
   };
 
@@ -34,9 +32,8 @@ export function createQueue(handler: Handler) {
     handleQueues();
   };
 
-  function getChunk(queue: Set<HTMLElement>, increased: boolean) {
-    const size = increased ? chunkSize * 2 : chunkSize;
-    const elements = [...queue].slice(0, size);
+  function getChunk(queue: Set<HTMLElement>) {
+    const elements = [...queue].slice(0, chunkSize);
     log("getChunk", elements);
     elements.forEach((element) => queue.delete(element));
     return elements;
@@ -44,24 +41,26 @@ export function createQueue(handler: Handler) {
 
   function handleQueues() {
     if (isHandling || !isRunning) return;
-    if (viewportQueue.size === 0 && regularQueue.size === 0) return;
 
     // first priority
     if (viewportQueue.size > 0) {
       isHandling = true;
-      const viewportChunk = getChunk(viewportQueue, true);
+      const viewportChunk = getChunk(viewportQueue);
       viewportChunk.forEach(handler);
       isHandling = false;
-      requestAnimationFrame(handleQueues);
+
+      const method = firstTime ? setTimeout : requestIdleCallback;
+      method(handleQueues);
       return;
     }
 
     if (regularQueue.size > 0) {
       isHandling = true;
-      const regularChunk = getChunk(regularQueue, false);
+      const regularChunk = getChunk(regularQueue);
       regularChunk.forEach(handler);
       isHandling = false;
       requestIdleCallback(handleQueues);
+      return;
     }
   }
 

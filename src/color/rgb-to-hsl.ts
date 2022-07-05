@@ -26,5 +26,6 @@ export function rgbToHsl(r: number, g: number, b: number) {
     h /= 6;
   }
   l = Math.round(l * 100);
-  return { h, s, l };
+
+  return { h: h as number, s, l };
 }

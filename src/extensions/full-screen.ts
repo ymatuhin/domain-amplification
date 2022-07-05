@@ -1,13 +1,17 @@
-import { addRule, makeRule, removeRule } from "../styles";
-import type { Extension } from "./index";
+import { logger } from "../config";
+import { addRule, makeRule } from "../styles";
+import type { MiddlewareParams } from "./index";
 
+const log = logger("ext:fullscreen");
 const rule = makeRule(`:fullscreen { filter: initial !important; }`);
 
-export default {
-  start() {
+export default function (params: MiddlewareParams) {
+  const { status } = params;
+
+  if (status === "start") {
+    log("start");
     addRule(rule);
-  },
-  stop() {
-    removeRule(rule);
-  },
-} as Extension;
+  }
+
+  return params;
+}

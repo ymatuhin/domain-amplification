@@ -1,34 +1,41 @@
-import background from "./background";
+import { createMiddleware } from "../utils";
+import backColor from "./back-color";
+import cleanElementState from "./clean-element-state";
 import documentColors from "./document-colors";
 import documentLightness from "./document-lightness";
-import emoji from "./emoji";
-import fullscreen from "./full-screen";
-import media from "./media";
+import embed from "./embed";
+import fullScreen from "./full-screen";
+import image from "./image";
+import isDocument from "./is-document";
+import loadStyles from "./load-styles";
+import saveStyles from "./save-styles";
 import scroll from "./scroll";
-import styleSync from "./style-sync";
 
 export type HTMLElementExtended = HTMLElement & {
-  inverted: boolean;
+  __sdm_inverted?: boolean;
+  __sdm_rule?: string;
+  // __sdm_hadBackColor?: boolean;
+  // __sdm_hadImage?: boolean;
 };
 
-export type Extension = {
-  init?: () => void;
-  start?: () => void;
-  stop?: () => void;
-  domReady?: () => void;
-  domComplete?: () => void;
-  handleElement?: (element: HTMLElementExtended) => void;
-  handleHtmlBody?: () => void;
+export type MiddlewareParams = {
+  status: "init" | "start" | "stop" | "update";
+  element?: HTMLElementExtended;
+  isDocument?: boolean;
+  inverted?: boolean;
 };
 
-export const extensions = [
-  // styleSync before everything
-  documentColors,
-  styleSync,
-  scroll,
+export const runMiddleware = createMiddleware([
+  loadStyles, // load previous styles
+  isDocument,
   documentLightness,
-  fullscreen,
-  background,
-  emoji,
-  media,
-];
+  documentColors,
+  fullScreen,
+  scroll,
+  // element handlers
+  cleanElementState,
+  backColor, // backColor before embed/image
+  embed,
+  image,
+  saveStyles, // save current styles
+]);
