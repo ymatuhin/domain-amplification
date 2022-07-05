@@ -35,24 +35,25 @@ async function handleElement(
     ? element.getAttribute("src")
     : styles.backgroundImage.slice(5, -2);
 
+  let isColorful;
+
   try {
     const worker = createWorker();
-    const isColorful = await checkIsColorful(worker, src!);
-
-    if (isColorful === true || (isColorful === undefined && isImage)) {
-      const selector = getSelector(element);
-      const rule = makeRule(`${selector} { ${mediaFilter} }`);
-      log("addRule", { isColorful, src, element, rule });
-      addRule(rule);
-      element.__sdm_inverted = true;
-      element.__sdm_rule = rule;
-    }
-
-    return isColorful;
+    isColorful = await checkIsColorful(worker, src!);
   } catch (error) {
     log("error", { error });
-    return undefined;
   }
+
+  if (isColorful === true || (isColorful === undefined && isImage)) {
+    const selector = getSelector(element);
+    const rule = makeRule(`${selector} { ${mediaFilter} }`);
+    log("addRule", { isColorful, src, element, rule });
+    addRule(rule);
+    element.__sdm_inverted = true;
+    element.__sdm_rule = rule;
+  }
+
+  return isColorful;
 }
 
 // simple cache

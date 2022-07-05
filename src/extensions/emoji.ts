@@ -29,7 +29,6 @@ export default async function (params: MiddlewareParams) {
       element.textContent.replaceAll(emojiRx, "").replaceAll(/\W|\D/g, "")
         .length <= 1;
 
-    console.info(`🔥 parentHasOnlyEmoji`, parentHasOnlyEmoji);
     if (parentHasOnlyEmoji) {
       log("has only emoji", { node });
       newInverted = true;
