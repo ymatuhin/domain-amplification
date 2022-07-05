@@ -38,10 +38,7 @@ async function handleElement(
       ? element.getAttribute("src")
       : styles.backgroundImage.slice(5, -2);
 
-  // return false;
-
-  // const isColorful = (await checkIsColorful(src!)) ?? true;
-  const isColorful = true;
+  const isColorful = (await checkIsColorful(src!)) ?? true;
   if (isColorful) {
     const selector = getSelector(element);
     const rule = makeRule(`${selector} { ${mediaFilter} }`);

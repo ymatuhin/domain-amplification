@@ -1,7 +1,7 @@
 import { domain } from "shared/logger";
 
 export const logger = domain("🌙 sdm");
-export const chunkSize = 1;
+export const chunkSize = 2;
 
 export const host = location.hostname.replace("www.", "");
 export const classRx = /sdm-\S*/gi;

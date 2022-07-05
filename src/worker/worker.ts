@@ -1,6 +1,6 @@
 export default () => {
   onmessage = async ({ data }) => {
-    const canvasW = Math.min(64, data.width);
+    const canvasW = Math.min(48, data.width);
     const canvasH = canvasW * (data.width / data.height);
     // @ts-ignore
     const canvas = new OffscreenCanvas(data.width, data.height);
@@ -10,17 +10,18 @@ export default () => {
     context.drawImage(data, ...originalArea, ...scaledArea);
     const { data: ctxData } = context.getImageData(0, 0, canvasW, canvasH);
 
-    // TODO: SET AS STRING OR SMTH
     const colors = new Set<number>();
     const chunkSize = 4;
     for (let i = 0; i < ctxData.length; i += chunkSize) {
       const [r, g, b, a] = ctxData.slice(i, i + chunkSize) as number[];
       if (a === 0) continue;
       const { h } = rgbToHsl(r, g, b);
+      const hue = Math.round(h * 100) / 100;
+      if (colors.has(hue - 1) || colors.has(hue + 1)) continue;
       colors.add(Math.round(h * 100) / 100);
     }
 
-    return postMessage(colors.size > 5);
+    return postMessage(colors.size >= 3);
   };
   function rgbToHsl(r: number, g: number, b: number) {
     (r /= 255), (g /= 255), (b /= 255);
