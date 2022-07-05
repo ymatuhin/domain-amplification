@@ -4,6 +4,7 @@ import cleanElementState from "./clean-element-state";
 import documentColors from "./document-colors";
 import documentLightness from "./document-lightness";
 import embed from "./embed";
+import emoji from "./emoji";
 import fullScreen from "./full-screen";
 import image from "./image";
 import isDocument from "./is-document";
@@ -38,5 +39,6 @@ export const runMiddleware = createMiddleware([
   embed,
   image,
   scroll,
+  emoji,
   saveStyles, // save current styles
 ]);

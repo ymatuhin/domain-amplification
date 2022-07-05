@@ -35,24 +35,29 @@ async function handleElement(
     ? element.getAttribute("src")
     : styles.backgroundImage.slice(5, -2);
 
-  const isColorful = await checkIsColorful(src!);
-  if (isColorful === true || (isColorful === undefined && isImage)) {
-    const selector = getSelector(element);
-    const rule = makeRule(`${selector} { ${mediaFilter} }`);
-    log("addRule", { isColorful, src, element, rule });
-    addRule(rule);
-    element.__sdm_inverted = true;
-    element.__sdm_rule = rule;
-  }
+  try {
+    const worker = createWorker();
+    const isColorful = await checkIsColorful(worker, src!);
 
-  return isColorful;
+    if (isColorful === true || (isColorful === undefined && isImage)) {
+      const selector = getSelector(element);
+      const rule = makeRule(`${selector} { ${mediaFilter} }`);
+      log("addRule", { isColorful, src, element, rule });
+      addRule(rule);
+      element.__sdm_inverted = true;
+      element.__sdm_rule = rule;
+    }
+
+    return isColorful;
+  } catch (error) {
+    log("error", { error });
+    return undefined;
+  }
 }
 
 // simple cache
 const map = new Map();
-const worker = createWorker();
-
-function checkIsColorful(src: string) {
+function checkIsColorful(worker: Worker, src: string) {
   if (map.has(src)) return Promise.resolve(map.get(src));
 
   return new Promise(async (res) => {
