@@ -1,6 +1,7 @@
 import { createMiddleware } from "../utils";
 import backColor from "./back-color";
 import cleanElementState from "./clean-element-state";
+import defaultScroll from "./default-scroll";
 import documentColors from "./document-colors";
 import documentLightness from "./document-lightness";
 import embed from "./embed";
@@ -24,13 +25,15 @@ export type MiddlewareParams = {
   isDocument?: boolean;
   isIgnored?: boolean;
   inverted?: boolean;
+  isLight?: boolean;
 };
 
 export const runMiddleware = createMiddleware([
+  documentLightness,
+  defaultScroll, // should be after documentLightness first
   loadStyles, // load previous styles
   isDocument,
   isIgnored,
-  documentLightness,
   documentColors,
   fullScreen,
   // element handlers

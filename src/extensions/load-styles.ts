@@ -11,15 +11,15 @@ document.adoptedStyleSheets.push(sheet);
 export default function (params: MiddlewareParams) {
   const { status } = params;
 
-  if (checkInsideIframe()) return params;
-
   if (status === "init") {
+    if (checkInsideIframe()) return params;
     const saved = localStorage.getItem(locals.styles) ?? "";
     log("init", { saved });
     // @ts-ignore
     sheet.replaceSync(saved);
     localStorage.removeItem(locals.styles);
   } else if (status === "stop") {
+    if (checkInsideIframe()) return params;
     // @ts-ignore
     sheet.replaceSync("");
   }

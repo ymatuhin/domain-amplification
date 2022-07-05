@@ -1,3 +1,4 @@
+import { get } from "svelte/store";
 import { MiddlewareParams } from ".";
 import { checkDocumentIsLight } from "../color";
 import { logger } from "../config";
@@ -9,16 +10,14 @@ const log = logger("ext:document-lightness");
 export default async function (params: MiddlewareParams) {
   const { status, isDocument } = params;
 
-  if (status === "init") {
+  if (status === "init" || status === "start" || isDocument) {
     log("init");
     await waitForBody();
-  }
-
-  if (status === "init" || isDocument) {
     const isLight = checkDocumentIsLight();
     log("syncLightness", { isLight });
     $isLight.set(isLight);
+    return { ...params, isLight };
   }
 
-  return params;
+  return { ...params, isLight: get($isLight) };
 }

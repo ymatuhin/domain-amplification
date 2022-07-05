@@ -15,8 +15,9 @@ import { addRule, makeRule, mediaFilter } from "../styles";
 const log = logger("ext:back-color");
 
 export default function (params: MiddlewareParams) {
-  const { element, isDocument, isIgnored } = params;
+  const { status, element, isDocument, isIgnored } = params;
 
+  if (status === "stop") return params;
   if (!element || isDocument || isIgnored) return params;
 
   if (!element.isConnected) return params;

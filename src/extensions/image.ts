@@ -9,8 +9,9 @@ import { createBitmap, createWorker } from "../worker";
 const log = logger("ext:image");
 
 export default async function (params: MiddlewareParams) {
-  const { element, isDocument, isIgnored, inverted } = params;
+  const { status, element, isDocument, isIgnored, inverted } = params;
 
+  if (status === "stop") return params;
   if (inverted) return params;
   if (!element || !element.isConnected) return params;
   if (isDocument || isIgnored) return params;

@@ -9,6 +9,7 @@ const log = logger("ext:save-styles");
 const debouncedSave = debounce(saveStyles, 125);
 
 export default function (params: MiddlewareParams) {
+  if (params.status === "stop") return params;
   if (checkInsideIframe()) return params;
 
   debouncedSave();
@@ -17,6 +18,6 @@ export default function (params: MiddlewareParams) {
 
 function saveStyles() {
   const rules = getRules();
-  log("save", { rules });
+  log("save", rules);
   localStorage.setItem(locals.styles, rules);
 }

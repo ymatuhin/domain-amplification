@@ -9,8 +9,9 @@ const log = logger("ext:emoji");
 let idCount = 0;
 
 export default async function (params: MiddlewareParams) {
-  const { element, isDocument, isIgnored, inverted } = params;
+  const { status, element, isDocument, isIgnored, inverted } = params;
 
+  if (status === "stop") return params;
   if (inverted) return params;
   if (!element || !element.isConnected) return params;
   if (isDocument || isIgnored) return params;

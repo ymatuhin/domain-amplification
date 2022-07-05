@@ -1,5 +1,4 @@
 import { logStore } from "shared/logger";
-import { subscribeOnChange } from "shared/utils/subscribe-on-change";
 import { derived, get, writable } from "svelte/store";
 import { locals, logger } from "./config";
 
@@ -25,14 +24,17 @@ chrome.runtime.onMessage.addListener((message) => {
   $stored.set(!get($isEnabled));
 });
 
-subscribeOnChange($stored, (value) => {
+$stored.subscribe((value) => {
+  if (value === null) return;
   localStorage.setItem(locals.enabled, value!.toString());
 });
 
-subscribeOnChange($isLight, (value) => {
+$isLight.subscribe((value) => {
+  if (value === null) return;
   localStorage.setItem(locals.isLight, value!.toString());
 });
 
 $isEnabled.subscribe((value) => {
+  log("send message to background", { isEnabled: value });
   chrome.runtime.sendMessage({ type: "status", value });
 });
