@@ -11,24 +11,31 @@ export default () => {
     const { data: ctxData } = context.getImageData(0, 0, canvasW, canvasH);
 
     const colors = new Set<string>();
+    // const lightness: number[] = [];
     const chunkSize = 4;
     for (let i = 0; i < ctxData.length; i += chunkSize) {
       const [r, g, b, a] = ctxData.slice(i, i + chunkSize) as number[];
       if (a === 0) continue;
       const { h, s, l } = rgbToHsl(r, g, b);
+      // lightness.push(l);
       if (noSimilar(colors, h, s, l)) colors.add(`${h}-${s}-${l}`);
     }
 
-    return postMessage({ src, colorful: colors.size > 3 });
+    // const avgLightness = lightness.reduce((a, b) => a + b) / lightness.length;
+    const colorful = colors.size >= 3;
+    return postMessage({ src, colorful });
   };
 
   function noSimilar(colors: Set<string>, h: number, s: number, l: number) {
     const hasSimilar = [...colors].some((textColor) => {
       const [iH, iS, iL] = textColor.split("-").map(Number);
       return (
-        (iH === h || iH - 1 === h || iH + 1 === h) &&
-        (iS === s || iS - 1 === s || iS + 1 === s) &&
-        (iL === l || iL - 1 === l || iL + 1 === l)
+        iH > h - 5 &&
+        iH < h + 5 &&
+        iS > s - 5 &&
+        iS < s + 5 &&
+        iL > l - 5 &&
+        iL < l + 5
       );
     });
     return !hasSimilar;
@@ -63,9 +70,9 @@ export default () => {
     }
 
     return {
-      h: Math.round((h as number) * 10),
-      s: Math.round(s * 10),
-      l: Math.round(l * 10),
+      h: Math.round((h as number) * 100),
+      s: Math.round(s * 100),
+      l: Math.round(l * 100),
     };
   }
 };

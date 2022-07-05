@@ -30,13 +30,13 @@ async function handleElement(
   element: HTMLElementExtended,
   styles: CSSStyleDeclaration,
 ) {
-  const src =
-    element instanceof HTMLImageElement
-      ? element.getAttribute("src")
-      : styles.backgroundImage.slice(5, -2);
+  const isImage = element instanceof HTMLImageElement;
+  const src = isImage
+    ? element.getAttribute("src")
+    : styles.backgroundImage.slice(5, -2);
 
-  const isColorful = (await checkIsColorful(src!)) ?? true;
-  if (isColorful) {
+  const isColorful = await checkIsColorful(src!);
+  if (isColorful === true || (isColorful === undefined && isImage)) {
     const selector = getSelector(element);
     const rule = makeRule(`${selector} { ${mediaFilter} }`);
     log("addRule", { isColorful, src, element, rule });
