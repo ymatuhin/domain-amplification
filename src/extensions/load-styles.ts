@@ -1,3 +1,4 @@
+import { checkInsideIframe } from "shared/utils/check-inside-iframe";
 import { locals, logger } from "../config";
 import type { MiddlewareParams } from "./index";
 
@@ -9,6 +10,8 @@ document.adoptedStyleSheets.push(sheet);
 
 export default function (params: MiddlewareParams) {
   const { status } = params;
+
+  if (checkInsideIframe()) return params;
 
   if (status === "init") {
     const saved = localStorage.getItem(locals.styles) ?? "";

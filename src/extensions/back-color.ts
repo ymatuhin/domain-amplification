@@ -1,7 +1,8 @@
 import type { HTMLElementExtended, MiddlewareParams } from ".";
 import {
   checkBackColorPresence,
-  computeLightnessValue,
+  getLightnessStatusFromValue,
+  getRgbLightness,
   rgbaToObject,
 } from "../color";
 import { checkBackImagePresence } from "../color/check-back-image-presence";
@@ -14,13 +15,9 @@ import { addRule, makeRule, mediaFilter } from "../styles";
 const log = logger("ext:back-color");
 
 export default function (params: MiddlewareParams) {
-  const { element, isDocument } = params;
+  const { element, isDocument, isIgnored } = params;
 
-  if (!element || isDocument) return params;
-  if (element instanceof HTMLImageElement) return params;
-  if (element instanceof HTMLVideoElement) return params;
-  if (element instanceof HTMLEmbedElement) return params;
-  if (element instanceof HTMLObjectElement) return params;
+  if (!element || isDocument || isIgnored) return params;
 
   if (!element.isConnected) return params;
   if (checkInsideInverted(element)) return params;
@@ -42,14 +39,15 @@ function handleElement(element: HTMLElementExtended) {
   const filterTransparent = (color: string) => rgbaToObject(color).a !== 0;
   const lightness = colors
     .filter(filterTransparent)
-    .map(computeLightnessValue) as number[];
+    .map(getRgbLightness) as number[];
   if (!lightness.length) return false;
 
   const avg = lightness.reduce((a, b) => a + b) / lightness.length;
   const selector = getSelector(element);
   const rule = makeRule(`${selector} { ${mediaFilter}}`);
+  const status = getLightnessStatusFromValue(avg);
 
-  if (avg < 40 && size > 4) {
+  if (status === "dark" && size > 4) {
     log("add rule", { element });
     addRule(rule);
     element.__sdm_inverted = true;

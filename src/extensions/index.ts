@@ -7,6 +7,7 @@ import embed from "./embed";
 import fullScreen from "./full-screen";
 import image from "./image";
 import isDocument from "./is-document";
+import isIgnored from "./is-ignored";
 import loadStyles from "./load-styles";
 import saveStyles from "./save-styles";
 import scroll from "./scroll";
@@ -14,28 +15,28 @@ import scroll from "./scroll";
 export type HTMLElementExtended = HTMLElement & {
   __sdm_inverted?: boolean;
   __sdm_rule?: string;
-  // __sdm_hadBackColor?: boolean;
-  // __sdm_hadImage?: boolean;
 };
 
 export type MiddlewareParams = {
   status: "init" | "start" | "stop" | "update";
   element?: HTMLElementExtended;
   isDocument?: boolean;
+  isIgnored?: boolean;
   inverted?: boolean;
 };
 
 export const runMiddleware = createMiddleware([
   loadStyles, // load previous styles
   isDocument,
+  isIgnored,
   documentLightness,
   documentColors,
   fullScreen,
-  scroll,
   // element handlers
   cleanElementState,
   backColor, // backColor before embed/image
   embed,
   image,
+  scroll,
   saveStyles, // save current styles
 ]);

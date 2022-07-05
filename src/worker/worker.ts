@@ -1,28 +1,39 @@
 export default () => {
-  onmessage = async ({ data }) => {
-    const canvasW = Math.min(48, data.width);
-    const canvasH = canvasW * (data.width / data.height);
+  onmessage = async ({ data: { bitmap, src } }) => {
+    const canvasW = Math.min(48, bitmap.width);
+    const canvasH = canvasW * (bitmap.width / bitmap.height);
     // @ts-ignore
-    const canvas = new OffscreenCanvas(data.width, data.height);
+    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
     const context = canvas.getContext("2d");
-    const originalArea = [0, 0, data.width, data.height];
+    const originalArea = [0, 0, bitmap.width, bitmap.height];
     const scaledArea = [0, 0, canvasW, canvasH];
-    context.drawImage(data, ...originalArea, ...scaledArea);
+    context.drawImage(bitmap, ...originalArea, ...scaledArea);
     const { data: ctxData } = context.getImageData(0, 0, canvasW, canvasH);
 
-    const colors = new Set<number>();
+    const colors = new Set<string>();
     const chunkSize = 4;
     for (let i = 0; i < ctxData.length; i += chunkSize) {
       const [r, g, b, a] = ctxData.slice(i, i + chunkSize) as number[];
       if (a === 0) continue;
-      const { h } = rgbToHsl(r, g, b);
-      const hue = Math.round(h * 100) / 100;
-      if (colors.has(hue - 1) || colors.has(hue + 1)) continue;
-      colors.add(Math.round(h * 100) / 100);
+      const { h, s, l } = rgbToHsl(r, g, b);
+      if (noSimilar(colors, h, s, l)) colors.add(`${h}-${s}-${l}`);
     }
 
-    return postMessage(colors.size >= 3);
+    return postMessage({ src, colorful: colors.size > 3 });
   };
+
+  function noSimilar(colors: Set<string>, h: number, s: number, l: number) {
+    const hasSimilar = [...colors].some((textColor) => {
+      const [iH, iS, iL] = textColor.split("-").map(Number);
+      return (
+        (iH === h || iH - 1 === h || iH + 1 === h) &&
+        (iS === s || iS - 1 === s || iS + 1 === s) &&
+        (iL === l || iL - 1 === l || iL + 1 === l)
+      );
+    });
+    return !hasSimilar;
+  }
+
   function rgbToHsl(r: number, g: number, b: number) {
     (r /= 255), (g /= 255), (b /= 255);
     var max = Math.max(r, g, b),
@@ -50,8 +61,11 @@ export default () => {
       // @ts-ignore
       h /= 6;
     }
-    l = Math.round(l * 100);
 
-    return { h: h as number, s, l };
+    return {
+      h: Math.round((h as number) * 10),
+      s: Math.round(s * 10),
+      l: Math.round(l * 10),
+    };
   }
 };

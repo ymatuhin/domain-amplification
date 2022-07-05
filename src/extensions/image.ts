@@ -9,14 +9,11 @@ import { createBitmap, createWorker } from "../worker";
 const log = logger("ext:image");
 
 export default async function (params: MiddlewareParams) {
-  const { element, isDocument, inverted } = params;
+  const { element, isDocument, isIgnored, inverted } = params;
 
   if (inverted) return params;
-  if (!element || isDocument) return params;
-  if (element instanceof HTMLVideoElement) return params;
-  if (element instanceof HTMLEmbedElement) return params;
-  if (element instanceof HTMLObjectElement) return params;
-  if (!element.isConnected) return params;
+  if (!element || !element.isConnected) return params;
+  if (isDocument || isIgnored) return params;
   if (checkInsideInverted(element)) return params;
 
   const styles = getComputedStyle(element);
@@ -53,18 +50,23 @@ async function handleElement(
 
 // simple cache
 const map = new Map();
+const worker = createWorker();
+
 function checkIsColorful(src: string) {
   if (map.has(src)) return Promise.resolve(map.get(src));
 
   return new Promise(async (res) => {
     try {
       const bitmap = await createBitmap(src);
-      const worker = createWorker();
-      worker.postMessage(bitmap);
-      worker.onmessage = ({ data: colorful }) => {
-        map.set(src, colorful);
-        res(colorful);
+      worker.postMessage({ bitmap, src });
+      const onMessage = ({ data }: { data: any }) => {
+        map.set(data.src, data.colorful);
+        if (data.src === src) {
+          res(data.colorful);
+          worker.removeEventListener("message", onMessage);
+        }
       };
+      worker.addEventListener("message", onMessage);
     } catch (error) {
       log("error", { src, error });
       map.set(src, undefined);
