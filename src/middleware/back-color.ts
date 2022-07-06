@@ -6,26 +6,43 @@ import {
   rgbaToObject,
 } from "../color";
 import { checkBackImagePresence } from "../color/check-back-image-presence";
-import { logger, rgbaRx } from "../config";
+import {
+  invertedPropName,
+  logger,
+  mediaFilter,
+  rgbaRx,
+  rulesPropName,
+} from "../config";
 import { checkInsideInverted } from "../dom/check-inside-inverted";
 import { getElementSize } from "../dom/get-element-size";
 import { getSelector } from "../dom/get-selector";
-import { addRule, makeRule, mediaFilter } from "../styles";
+import { Sheet } from "../utils";
 
-const log = logger("ext:back-color");
+const log = logger("middleware:back-color");
+const sheet = new Sheet("back-color");
 
 export default function (params: MiddlewareParams) {
-  const { status, element, isDocument, isIgnored } = params;
+  const { status, element, isDocument, isEmbedded } = params;
 
-  if (status === "stop") return params;
-  if (!element || isDocument || isIgnored) return params;
+  switch (status) {
+    case "update":
+      if (!element || isDocument || isEmbedded) break;
+      if (element.isConnected) {
+        if (checkInsideInverted(element)) break;
+        const inverted = handleElement(element);
+        return { ...params, inverted };
+      } else {
+        element[invertedPropName] = undefined;
+        const rules = element[rulesPropName] ?? [];
+        rules.forEach((rule) => sheet.removeRule(rule));
+      }
+      break;
+    case "stop":
+      sheet.clear();
+      break;
+  }
 
-  if (!element.isConnected) return params;
-  if (checkInsideInverted(element)) return params;
-
-  const inverted = handleElement(element);
-
-  return { ...params, inverted };
+  return params;
 }
 
 function handleElement(element: HTMLElementExtended) {
@@ -45,14 +62,15 @@ function handleElement(element: HTMLElementExtended) {
 
   const avg = lightness.reduce((a, b) => a + b) / lightness.length;
   const selector = getSelector(element);
-  const rule = makeRule(`${selector} { ${mediaFilter}}`);
+  const rule = sheet.makeRule(`${selector} { ${mediaFilter} }`);
   const status = getLightnessStatusFromValue(avg);
 
   if (status === "dark" && size > 4) {
     log("add rule", { element });
-    addRule(rule);
-    element.__sdm_inverted = true;
-    element.__sdm_rule = rule;
+    sheet.addRule(rule);
+    element[invertedPropName] = true;
+    element[rulesPropName] = element[rulesPropName] ?? [];
+    element[rulesPropName].push(rule);
     return true;
   } else {
     log("skip", { element, size, colors, lightness });

@@ -5,7 +5,7 @@ import { getSelector } from "../dom/get-selector";
 import { addRule, makeRule, mediaFilter } from "../styles";
 const emojiRx = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
 
-const log = logger("ext:emoji");
+const log = logger("middleware:emoji");
 let idCount = 0;
 
 export default async function (params: MiddlewareParams) {

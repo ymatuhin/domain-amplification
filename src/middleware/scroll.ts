@@ -5,7 +5,7 @@ import { getSelector } from "../dom/get-selector";
 import { addRule, makeRule } from "../styles";
 import type { MiddlewareParams } from "./index";
 
-const log = logger("ext:scroll");
+const log = logger("middleware:scroll");
 
 const rootRule = makeRule(`:root { color-scheme: dark; }`);
 const elementsRule = makeRule(
@@ -13,7 +13,7 @@ const elementsRule = makeRule(
 );
 
 export default function (params: MiddlewareParams) {
-  const { status, element, isDocument, isIgnored, inverted } = params;
+  const { status, element, isDocument, isIgnored, isInverted } = params;
 
   if (status === "start") {
     log("start");
@@ -26,7 +26,7 @@ export default function (params: MiddlewareParams) {
     return params;
 
   if (
-    (inverted || checkInsideInverted(element)) &&
+    (isInverted || checkInsideInverted(element)) &&
     checkIsScrollable(element)
   ) {
     const selector = getSelector(element);

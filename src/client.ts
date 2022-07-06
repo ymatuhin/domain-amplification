@@ -2,27 +2,22 @@ import { elementsSelector, locals, logger } from "./config";
 import { waitForDom } from "./dom";
 import { observeChanges } from "./dom/observe-changes";
 import { createQueue } from "./dom/queue";
-import { runMiddleware } from "./extensions";
+import { runMiddleware } from "./middleware";
 import { $isEnabled } from "./state";
-import { addRule, clearRules, rootRule } from "./styles";
 
 const log = logger("client");
 const noSavedStyles = localStorage.getItem(locals.styles) === null;
 const queue = createQueue(changeHandler, noSavedStyles);
 const observer = observeChanges(queue.addElements);
 
-init();
+log("init");
+runMiddleware({ status: "init" });
 
-async function init() {
-  log("init");
-  runMiddleware({ status: "init" });
-
-  $isEnabled.subscribe((value) => {
-    log("$isEnabled", value);
-    if (value === null) return;
-    value ? start() : stop();
-  });
-}
+$isEnabled.subscribe((value) => {
+  log("$isEnabled", value);
+  if (value === null) return;
+  value ? start() : stop();
+});
 
 function changeHandler(element: HTMLElement) {
   runMiddleware({ status: "update", element });
@@ -30,7 +25,6 @@ function changeHandler(element: HTMLElement) {
 
 async function start() {
   log("start");
-  addRule(rootRule);
   runMiddleware({ status: "start" });
 
   await waitForDom();
@@ -44,7 +38,6 @@ async function start() {
 function stop() {
   log("stop");
   runMiddleware({ status: "stop" });
-  clearRules();
   queue.stop();
   observer.stop();
 }

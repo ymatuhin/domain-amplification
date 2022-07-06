@@ -6,7 +6,7 @@ import { getSelector } from "../dom/get-selector";
 import { addRule, makeRule, mediaFilter } from "../styles";
 import { createBitmap, createWorker } from "../worker";
 
-const log = logger("ext:image");
+const log = logger("middleware:image");
 
 export default async function (params: MiddlewareParams) {
   const { status, element, isDocument, isIgnored, inverted } = params;
@@ -50,7 +50,7 @@ async function handleElement(
     const rule = makeRule(`${selector} { ${mediaFilter} }`);
     log("addRule", { isColorful, src, element, rule });
     addRule(rule);
-    element.__sdm_inverted = true;
+    element[invertedPropName] = true;
     element.__sdm_rule = rule;
   }
 

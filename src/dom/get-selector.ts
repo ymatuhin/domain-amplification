@@ -7,12 +7,11 @@ export function getSelector(
     return selectors.join(" > ");
 
   const tag = element.tagName.toLowerCase();
-
   let selector = tag;
-  if (element.id) {
+
+  if (isValidId(element.id)) {
     // special for invalid numeric id, like id="444"
-    selector = `[id="${element.id}"]`;
-    return [selector, ...selectors].join(" > ");
+    return [`#${element.id}`, ...selectors].join(" > ");
   } else if (tag !== "html" && tag !== "body") {
     const index = getElementIndex(element, selector);
     selector += `:nth-of-type(${index})`;
@@ -33,4 +32,13 @@ function getElementIndex(
     selector,
     count,
   );
+}
+
+function isValidId(id: string) {
+  if (!id) return false;
+  try {
+    const items = document.querySelectorAll(`#${id}`);
+    if (items.length === 1) return true;
+  } catch (e) {}
+  return false;
 }
