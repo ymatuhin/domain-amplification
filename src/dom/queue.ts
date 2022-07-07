@@ -27,7 +27,7 @@ export function createQueue(handler: Handler, firstTime: boolean) {
     const chunk = getChunk();
     chunk.forEach(handler);
     isHandling = false;
-    const method = firstTime ? setTimeout : requestIdleCallback;
+    const method = firstTime ? requestAnimationFrame : requestIdleCallback;
     method(handleQueues);
   }
 

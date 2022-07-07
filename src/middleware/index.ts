@@ -5,7 +5,9 @@ import backColor from "./back-color";
 import cleanElementState from "./clean-element-state";
 import defaultScroll from "./default-scroll";
 import documentColors from "./document-colors";
+import embed from "./embed";
 import fullScreen from "./full-screen";
+import image from "./image";
 import isDocument from "./is-document";
 import isEmbedded from "./is-embedded";
 import isLight from "./is-light";
@@ -49,8 +51,8 @@ export const runMiddleware = createMiddleware([
   // element handlers
   cleanElementState,
   backColor, // backColor before embed/image
-  // embed, //! something is wrong here, no idea(
-  // image,
+  embed,
+  image,
   // scroll,
   // emoji,
 ]);

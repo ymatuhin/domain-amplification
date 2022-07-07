@@ -24,8 +24,7 @@ export default function (params: MiddlewareParams) {
         return { ...params, isInverted: true };
       } else {
         element[invertedPropName] = undefined;
-        const rules = element[rulesPropName] ?? [];
-        rules.forEach((rule) => sheet.removeRule(rule));
+        element[rulesPropName]?.forEach((rule) => sheet.removeRule(rule));
       }
       break;
     case "stop":
@@ -42,6 +41,5 @@ function handleElement(element: HTMLElementExtended) {
   log("add rule", { selector });
   sheet.addRule(rule);
   element[invertedPropName] = true;
-  element[rulesPropName] = element[rulesPropName] ?? [];
-  element[rulesPropName].push(rule);
+  element[rulesPropName]?.push(rule);
 }

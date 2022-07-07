@@ -9,9 +9,12 @@ export function getSelector(
   const tag = element.tagName.toLowerCase();
   let selector = tag;
 
-  if (isValidId(element.id)) {
-    // special for invalid numeric id, like id="444"
-    return [`#${element.id}`, ...selectors].join(" > ");
+  if (element.id) {
+    if (isValidId(element.id)) {
+      return [`#${element.id}`, ...selectors].join(" > ");
+    } else {
+      return [`[id="${element.id}"]`, ...selectors].join(" > ");
+    }
   } else if (tag !== "html" && tag !== "body") {
     const index = getElementIndex(element, selector);
     selector += `:nth-of-type(${index})`;
@@ -34,11 +37,8 @@ function getElementIndex(
   );
 }
 
+const idRx = /^\w/;
 function isValidId(id: string) {
   if (!id) return false;
-  try {
-    const items = document.querySelectorAll(`#${id}`);
-    if (items.length === 1) return true;
-  } catch (e) {}
-  return false;
+  return idRx.test(id);
 }

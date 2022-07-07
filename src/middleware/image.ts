@@ -1,57 +1,87 @@
+import type { Readable } from "svelte/store";
+import { get } from "svelte/store";
 import type { HTMLElementExtended, MiddlewareParams } from ".";
 import { checkBackImagePresence } from "../color/check-back-image-presence";
-import { logger } from "../config";
+import {
+  invertedPropName,
+  logger,
+  mediaFilter,
+  rulesPropName,
+} from "../config";
 import { checkInsideInverted } from "../dom/check-inside-inverted";
 import { getSelector } from "../dom/get-selector";
-import { addRule, makeRule, mediaFilter } from "../styles";
+import { Sheet } from "../utils";
 import { createBitmap, createWorker } from "../worker";
 
 const log = logger("middleware:image");
+const sheet = new Sheet("image");
+let worker: Worker | void;
+
+try {
+  worker = createWorker();
+} catch (error) {
+  log("worker error", { error });
+}
 
 export default async function (params: MiddlewareParams) {
-  const { status, element, isDocument, isIgnored, inverted } = params;
+  const { status, element, isDocument, isEmbedded, isInverted, $isEnabled } =
+    params;
 
-  if (status === "stop") return params;
-  if (inverted) return params;
-  if (!element || !element.isConnected) return params;
-  if (isDocument || isIgnored) return params;
-  if (checkInsideInverted(element)) return params;
+  switch (status) {
+    case "update":
+      if (!element || isDocument || isEmbedded || isInverted) break;
+      if (element.isConnected) {
+        if (checkInsideInverted(element)) break;
+        const inverted = await handleElement(element, $isEnabled);
+        return { ...params, inverted };
+      } else {
+        element[invertedPropName] = undefined;
+        element[rulesPropName]?.forEach((rule) => sheet.removeRule(rule));
+      }
+      break;
+    case "stop":
+      sheet.clear();
+      break;
+  }
 
-  const styles = getComputedStyle(element);
-  const hasImage = checkBackImagePresence(styles);
-  const isImg = element instanceof HTMLImageElement;
-  if (!hasImage && !isImg) return params;
-
-  const newInverted = await handleElement(element, styles);
-
-  return { ...params, inverted: newInverted };
+  return params;
 }
 
 async function handleElement(
   element: HTMLElementExtended,
-  styles: CSSStyleDeclaration,
+  $isEnabled: Readable<boolean | null>,
 ) {
+  const styles = getComputedStyle(element);
+  const hasImage = checkBackImagePresence(styles);
+  const isImg = element instanceof HTMLImageElement;
+  if (!hasImage && !isImg) return false;
+
   const isImage = element instanceof HTMLImageElement;
+  const hasImageInStyle =
+    element.style.background || element.style.backgroundImage;
   const src = isImage
     ? element.getAttribute("src")
     : styles.backgroundImage.slice(5, -2);
 
   let isColorful;
-
-  try {
-    const worker = createWorker();
-    isColorful = await checkIsColorful(worker, src!);
-  } catch (error) {
-    log("error", { error });
+  if (worker) {
+    try {
+      isColorful = await checkIsColorful(src!);
+    } catch (error) {
+      log("check is colorful", { error });
+    }
   }
 
-  if (isColorful === true || (isColorful === undefined && isImage)) {
+  if (get($isEnabled) === false) return false;
+  if (isColorful === false) return false;
+
+  if (isColorful || isImage || hasImageInStyle) {
     const selector = getSelector(element);
-    const rule = makeRule(`${selector} { ${mediaFilter} }`);
+    const rule = sheet.makeRule(`${selector} { ${mediaFilter} }`);
     log("addRule", { isColorful, src, element, rule });
-    addRule(rule);
+    sheet.addRule(rule);
     element[invertedPropName] = true;
-    element.__sdm_rule = rule;
+    element[rulesPropName]?.push(rule);
   }
 
   return isColorful;
@@ -59,25 +89,26 @@ async function handleElement(
 
 // simple cache
 const map = new Map();
-function checkIsColorful(worker: Worker, src: string) {
+function checkIsColorful(src: string) {
   if (map.has(src)) return Promise.resolve(map.get(src));
+  if (!worker) return Promise.resolve(undefined);
 
   return new Promise(async (res) => {
     try {
       const bitmap = await createBitmap(src);
-      worker.postMessage({ bitmap, src });
+      worker?.postMessage({ bitmap, src });
       const onMessage = ({ data }: { data: any }) => {
         map.set(data.src, data.colorful);
         if (data.src === src) {
           res(data.colorful);
-          worker.removeEventListener("message", onMessage);
+          worker?.removeEventListener("message", onMessage);
         }
       };
-      worker.addEventListener("message", onMessage);
+      worker?.addEventListener("message", onMessage);
     } catch (error) {
       log("error", { src, error });
       map.set(src, undefined);
-      return res(undefined);
     }
+    return res(undefined);
   });
 }
