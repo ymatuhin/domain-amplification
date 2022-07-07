@@ -1,22 +1,49 @@
-import type { MiddlewareParams } from ".";
-import { logger } from "../config";
+import type { HTMLElementExtended, MiddlewareParams } from ".";
+import {
+  invertedPropName,
+  logger,
+  mediaFilter,
+  rulesPropName,
+} from "../config";
 import { checkInsideInverted } from "../dom/check-inside-inverted";
 import { getSelector } from "../dom/get-selector";
-import { addRule, makeRule, mediaFilter } from "../styles";
-const emojiRx = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
+import { Sheet } from "../utils";
 
 const log = logger("middleware:emoji");
-let idCount = 0;
+const sheet = new Sheet("emoji");
+const rule = sheet.makeRule(`.sdm-emoji { ${mediaFilter} }`);
 
 export default async function (params: MiddlewareParams) {
-  const { status, element, isDocument, isIgnored, inverted } = params;
+  const { status, element, isDocument, isEmbedded, isInverted } = params;
 
-  if (status === "stop") return params;
-  if (inverted) return params;
-  if (!element || !element.isConnected) return params;
-  if (isDocument || isIgnored) return params;
-  if (checkInsideInverted(element)) return params;
+  switch (status) {
+    case "start":
+      log("start");
+      sheet.addRule(rule);
+      break;
+    case "update":
+      if (!element || isDocument || isEmbedded || isInverted) break;
+      if (checkInsideInverted(element)) break;
+      if (element.isConnected) {
+        const ignored = handleElement(element);
+        return { ...params, isIgnored: ignored };
+      } else {
+        element[invertedPropName] = undefined;
+        element[rulesPropName]?.forEach((rule) => sheet.removeRule(rule));
+      }
+      break;
+    case "stop":
+      sheet.clear();
+      break;
+  }
 
+  return params;
+}
+
+const emojiRx = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
+const notEmojiRx = /^(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
+
+function handleElement(element: HTMLElementExtended) {
   const nodes = Array.from(element.childNodes);
   let newInverted = false;
   nodes.forEach((node) => {
@@ -24,28 +51,28 @@ export default async function (params: MiddlewareParams) {
 
     const match = node.textContent?.match(emojiRx) ?? [];
     const hasEmoji = match.length > 0;
-    if (!hasEmoji || !element.textContent) return;
 
-    const parentHasOnlyEmoji =
-      element.textContent.replaceAll(emojiRx, "").replaceAll(/\W|\D/g, "")
-        .length <= 1;
+    if (!hasEmoji || !element.textContent) return;
+    const parentHasOnlyEmoji = !notEmojiRx.test(element.textContent);
 
     if (parentHasOnlyEmoji) {
       log("has only emoji", { node });
       newInverted = true;
       const selector = getSelector(element);
-      const rule = makeRule(`${selector} { ${mediaFilter} }`);
-      addRule(rule);
+      const rule = sheet.makeRule(`${selector} { ${mediaFilter} }`);
+      sheet.addRule(rule);
     } else {
       log("has not only emoji", { node });
       let html = element.innerHTML;
       [...new Set(match)].forEach((emoji) => {
-        const id = `sdm-${++idCount}`;
-        html = html.replaceAll(emoji, `<span id="${id}">${emoji}</span>`);
+        html = html.replaceAll(
+          emoji,
+          `<span class="sdm-emoji">${emoji}</span>`,
+        );
       });
       element.innerHTML = html;
     }
   });
 
-  return { ...params, inverted: newInverted };
+  return newInverted;
 }

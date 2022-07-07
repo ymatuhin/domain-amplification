@@ -6,12 +6,14 @@ import cleanElementState from "./clean-element-state";
 import defaultScroll from "./default-scroll";
 import documentColors from "./document-colors";
 import embed from "./embed";
+import emoji from "./emoji";
 import fullScreen from "./full-screen";
 import image from "./image";
 import isDocument from "./is-document";
 import isEmbedded from "./is-embedded";
 import isLight from "./is-light";
 import root from "./root";
+import scroll from "./scroll";
 import store from "./store";
 
 export type HTMLElementExtended = HTMLElement & {
@@ -53,6 +55,6 @@ export const runMiddleware = createMiddleware([
   backColor, // backColor before embed/image
   embed,
   image,
-  // scroll,
-  // emoji,
+  scroll,
+  emoji,
 ]);

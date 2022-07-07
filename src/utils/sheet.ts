@@ -103,13 +103,13 @@ export class Sheet {
   #save() {
     const rules = Array.from(this.#sheet.cssRules);
     const text = rules.map((rule) => rule.cssText).join("\n");
-    this.log("save", text);
+    this.log("save", { text });
     localStorage.setItem(`sdm-sheet-${this.#name}`, text);
   }
 
   #load() {
     const saved = localStorage.getItem(`sdm-sheet-${this.#name}`);
-    this.log("load", saved);
+    this.log("load", { saved });
     // @ts-ignore
     if (saved) this.#sheet.replaceSync(saved);
   }
