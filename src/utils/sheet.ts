@@ -5,6 +5,10 @@ import { checkInsideIframe } from "shared/utils/check-inside-iframe";
 
 type Queue = { type: "add" | "remove"; rule: string };
 
+const savedSheet = new CSSStyleSheet();
+// @ts-ignore
+document.adoptedStyleSheets = [...document.adoptedStyleSheets, savedSheet];
+
 export class Sheet {
   log: ReturnType<typeof logger>;
   #name: string;
@@ -69,6 +73,8 @@ export class Sheet {
     this.log("clear");
     // @ts-ignore
     this.#sheet.replaceSync("");
+    // @ts-ignore
+    savedSheet.replaceSync("");
   }
 
   handleQueue() {
@@ -108,9 +114,12 @@ export class Sheet {
   }
 
   #load() {
-    const saved = localStorage.getItem(`sdm-sheet-${this.#name}`);
+    const name = `sdm-sheet-${this.#name}`;
+    const saved = localStorage.getItem(name);
     this.log("load", { saved });
-    // @ts-ignore
-    if (saved) this.#sheet.replaceSync(saved);
+    if (saved) {
+      const rulesArr = saved.split("\n");
+      rulesArr.forEach((rule) => savedSheet.insertRule(rule));
+    }
   }
 }

@@ -13,7 +13,7 @@ const log = logger("middleware:emoji");
 const sheet = new Sheet("emoji");
 const rule = sheet.makeRule(`.sdm-emoji { ${mediaFilter} }`);
 
-export default async function (params: MiddlewareParams) {
+export default function (params: MiddlewareParams) {
   const { status, element, isDocument, isEmbedded, isInverted } = params;
 
   switch (status) {
@@ -40,8 +40,9 @@ export default async function (params: MiddlewareParams) {
   return params;
 }
 
-const emojiRx = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
-const notEmojiRx = /^(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
+const emojiRx = /(\p{Emoji}|\p{Extended_Pictographic})/gu;
+const allEmojiStuffRx =
+  /(\p{Emoji}|\p{Emoji_Modifier}|\p{Emoji_Component}|\p{Extended_Pictographic})/gu;
 
 function handleElement(element: HTMLElementExtended) {
   const nodes = Array.from(element.childNodes);
@@ -53,7 +54,9 @@ function handleElement(element: HTMLElementExtended) {
     const hasEmoji = match.length > 0;
 
     if (!hasEmoji || !element.textContent) return;
-    const parentHasOnlyEmoji = !notEmojiRx.test(element.textContent);
+    const parentHasOnlyEmoji =
+      element.textContent.replaceAll(allEmojiStuffRx, "").replaceAll(/\s/gu, "")
+        .length === 0;
 
     if (parentHasOnlyEmoji) {
       log("has only emoji", { node });
@@ -61,6 +64,8 @@ function handleElement(element: HTMLElementExtended) {
       const selector = getSelector(element);
       const rule = sheet.makeRule(`${selector} { ${mediaFilter} }`);
       sheet.addRule(rule);
+      element[invertedPropName] = true;
+      element[rulesPropName]?.push(rule);
     } else {
       log("has not only emoji", { node });
       let html = element.innerHTML;
