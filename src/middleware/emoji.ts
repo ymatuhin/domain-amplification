@@ -2,7 +2,7 @@ import type { HTMLElementExtended, MiddlewareParams } from ".";
 import {
   invertedPropName,
   logger,
-  mediaFilter,
+  revertFilter,
   rulesPropName,
 } from "../config";
 import { checkInsideInverted } from "../dom/check-inside-inverted";
@@ -11,7 +11,7 @@ import { Sheet } from "../utils";
 
 const log = logger("middleware:emoji");
 const sheet = new Sheet("emoji");
-const rule = sheet.makeRule(`.sdm-emoji { ${mediaFilter} }`);
+const rule = sheet.makeRule(`.sdm-emoji { ${revertFilter} }`);
 
 export default function (params: MiddlewareParams) {
   const { status, element, isDocument, isEmbedded, isInverted } = params;
@@ -40,7 +40,7 @@ export default function (params: MiddlewareParams) {
   return params;
 }
 
-const emojiRx = /(\p{Emoji}|\p{Extended_Pictographic})/gu;
+const emojiRx = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
 const allEmojiStuffRx =
   /(\p{Emoji}|\p{Emoji_Modifier}|\p{Emoji_Component}|\p{Extended_Pictographic})/gu;
 
@@ -62,7 +62,7 @@ function handleElement(element: HTMLElementExtended) {
       log("has only emoji", { node });
       newInverted = true;
       const selector = getSelector(element);
-      const rule = sheet.makeRule(`${selector} { ${mediaFilter} }`);
+      const rule = sheet.makeRule(`${selector} { ${revertFilter} }`);
       sheet.addRule(rule);
       element[invertedPropName] = true;
       element[rulesPropName]?.push(rule);

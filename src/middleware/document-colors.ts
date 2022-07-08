@@ -1,3 +1,4 @@
+import { checkInsideIframe } from "shared/utils/check-inside-iframe";
 import type { MiddlewareParams } from ".";
 import { rgbaToObject } from "../color";
 import { logger } from "../config";
@@ -11,6 +12,8 @@ const ruleHtmlColor = sheet.makeRule("html { color: black; }");
 
 export default function (params: MiddlewareParams) {
   const { status, isDocument } = params;
+
+  if (checkInsideIframe()) return params;
 
   switch (status) {
     case "start":

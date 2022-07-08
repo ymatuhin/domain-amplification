@@ -1,7 +1,7 @@
 import {
   invertedPropName,
   logger,
-  mediaFilter,
+  revertFilter,
   rulesPropName,
 } from "../config";
 import { checkInsideInverted } from "../dom/check-inside-inverted";
@@ -37,7 +37,7 @@ export default function (params: MiddlewareParams) {
 
 function handleElement(element: HTMLElementExtended) {
   const selector = getSelector(element);
-  const rule = sheet.makeRule(`${selector} { ${mediaFilter} }`);
+  const rule = sheet.makeRule(`${selector} { ${revertFilter} }`);
   log("add rule", { selector });
   sheet.addRule(rule);
   element[invertedPropName] = true;

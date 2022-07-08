@@ -5,7 +5,7 @@ import { checkBackImagePresence } from "../color/check-back-image-presence";
 import {
   invertedPropName,
   logger,
-  mediaFilter,
+  revertFilter,
   rulesPropName,
 } from "../config";
 import { checkInsideInverted } from "../dom/check-inside-inverted";
@@ -19,6 +19,7 @@ let worker: Worker | void;
 
 try {
   worker = createWorker();
+  log("worker", worker);
 } catch (error) {
   log("worker error", { error });
 }
@@ -57,8 +58,6 @@ async function handleElement(
   if (!hasImage && !isImg) return false;
 
   const isImage = element instanceof HTMLImageElement;
-  const hasImageInStyle =
-    element.style.background || element.style.backgroundImage;
   const src = isImage
     ? element.getAttribute("src")
     : styles.backgroundImage.slice(5, -2);
@@ -67,22 +66,21 @@ async function handleElement(
   if (worker) {
     try {
       isColorful = await checkIsColorful(src!);
+      log("check is colorful", { isColorful, element });
     } catch (error) {
-      log("check is colorful", { error });
+      log("check is colorful", { error, element });
     }
   }
 
   if (get($isEnabled) === false) return false;
   if (isColorful === false) return false;
 
-  if (isColorful || isImage || hasImageInStyle) {
-    const selector = getSelector(element);
-    const rule = sheet.makeRule(`${selector} { ${mediaFilter} }`);
-    log("addRule", { isColorful, src, element, rule });
-    sheet.addRule(rule);
-    element[invertedPropName] = true;
-    element[rulesPropName]?.push(rule);
-  }
+  const selector = getSelector(element);
+  const rule = sheet.makeRule(`${selector} { ${revertFilter} }`);
+  log("addRule", { isColorful, src, element, rule });
+  sheet.addRule(rule);
+  element[invertedPropName] = true;
+  element[rulesPropName]?.push(rule);
 
   return isColorful;
 }
@@ -100,15 +98,17 @@ function checkIsColorful(src: string) {
       const onMessage = ({ data }: { data: any }) => {
         map.set(data.src, data.colorful);
         if (data.src === src) {
-          res(data.colorful);
           worker?.removeEventListener("message", onMessage);
+          res(data.colorful);
         }
       };
       worker?.addEventListener("message", onMessage);
     } catch (error) {
       log("error", { src, error });
       map.set(src, undefined);
+      res(undefined);
     }
-    return res(undefined);
+
+    setTimeout(() => res(undefined), 10_000);
   });
 }

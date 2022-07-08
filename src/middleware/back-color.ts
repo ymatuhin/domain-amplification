@@ -9,7 +9,7 @@ import { checkBackImagePresence } from "../color/check-back-image-presence";
 import {
   invertedPropName,
   logger,
-  mediaFilter,
+  revertFilter,
   rgbaRx,
   rulesPropName,
 } from "../config";
@@ -47,7 +47,7 @@ export default function (params: MiddlewareParams) {
 function handleElement(element: HTMLElementExtended) {
   const styles = getComputedStyle(element);
   const hasImage = checkBackImagePresence(styles);
-  if (hasImage) return;
+  if (hasImage || element instanceof HTMLImageElement) return;
   const hasColor = checkBackColorPresence(styles);
   if (!hasColor) return false;
 
@@ -61,17 +61,17 @@ function handleElement(element: HTMLElementExtended) {
 
   const avg = lightness.reduce((a, b) => a + b) / lightness.length;
   const selector = getSelector(element);
-  const rule = sheet.makeRule(`${selector} { ${mediaFilter} }`);
+  const rule = sheet.makeRule(`${selector} { ${revertFilter} }`);
   const status = getLightnessStatusFromValue(avg);
 
-  if (status === "dark" && size > 4) {
-    log("add rule", { element });
+  if (status === "dark") {
+    log("add rule", { element, size });
     sheet.addRule(rule);
     element[invertedPropName] = true;
     element[rulesPropName]?.push(rule);
     return true;
   } else {
-    log("skip", { element, size, colors, lightness });
+    // log("skip", { element, size, colors, lightness });
   }
 
   return false;

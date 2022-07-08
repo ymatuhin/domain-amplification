@@ -10,11 +10,7 @@ export function getSelector(
   let selector = tag;
 
   if (element.id) {
-    if (isValidId(element.id)) {
-      return [`#${element.id}`, ...selectors].join(" > ");
-    } else {
-      return [`[id="${element.id}"]`, ...selectors].join(" > ");
-    }
+    return [`[id="${element.id}"]`, ...selectors].join(" > ");
   } else if (tag !== "html" && tag !== "body") {
     const index = getElementIndex(element, selector);
     selector += `:nth-of-type(${index})`;
@@ -35,10 +31,4 @@ function getElementIndex(
     selector,
     count,
   );
-}
-
-const idRx = /^\w/;
-function isValidId(id: string) {
-  if (!id) return false;
-  return idRx.test(id);
 }

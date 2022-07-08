@@ -22,21 +22,17 @@ export default () => {
     }
 
     // const avgLightness = lightness.reduce((a, b) => a + b) / lightness.length;
-    const colorful = colors.size >= 3;
+    console.info(`🔥 colors`, { src, colors });
+    const colorful = colors.size > 3;
     return postMessage({ src, colorful });
   };
 
   function noSimilar(colors: Set<string>, h: number, s: number, l: number) {
     const hasSimilar = [...colors].some((textColor) => {
-      const [iH, iS, iL] = textColor.split("-").map(Number);
-      return (
-        iH > h - 5 &&
-        iH < h + 5 &&
-        iS > s - 5 &&
-        iS < s + 5 &&
-        iL > l - 5 &&
-        iL < l + 5
-      );
+      const [iH, iS] = textColor.split("-").map(Number);
+      const aroundH = iH > h - 8 && iH < h + 8;
+      const aroundS = iS > s - 8 && iS < s + 8;
+      return s < 8 ? aroundS : aroundH && aroundS;
     });
     return !hasSimilar;
   }
