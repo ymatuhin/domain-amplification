@@ -1,5 +1,4 @@
-import { invertedPropName, logger, rulesPropName } from "../config";
-import { checkInsideInverted } from "../dom/check-inside-inverted";
+import { logger, rulesPropName } from "../config";
 import { checkIsScrollable } from "../dom/check-is-scrollable";
 import { getSelector } from "../dom/get-selector";
 import { Sheet } from "../utils";
@@ -14,7 +13,7 @@ const elementsRule = sheet.makeRule(
 );
 
 export default function (params: MiddlewareParams) {
-  const { status, element, isDocument, isEmbedded, isInverted } = params;
+  const { status, element, isInverted, isEmbedded } = params;
 
   switch (status) {
     case "start":
@@ -23,19 +22,15 @@ export default function (params: MiddlewareParams) {
       sheet.addRule(elementsRule);
       break;
     case "update":
-      if (!element || isDocument || isEmbedded) break;
+      if (!isInverted || isEmbedded) break;
+      if (!checkIsScrollable(element)) break;
+
       if (element.isConnected) {
-        if (
-          (isInverted || checkInsideInverted(element)) &&
-          checkIsScrollable(element)
-        ) {
-          const selector = getSelector(element);
-          const rule = sheet.makeRule(`${selector} { color-scheme: dark; }`);
-          log("invert scroll", { element, rule });
-          sheet.addRule(rule);
-        }
+        const selector = getSelector(element);
+        const rule = sheet.makeRule(`${selector} { color-scheme: dark; }`);
+        sheet.addRule(rule);
+        element[rulesPropName]?.push(rule);
       } else {
-        element[invertedPropName] = undefined;
         element[rulesPropName]?.forEach((rule) => sheet.removeRule(rule));
       }
       break;

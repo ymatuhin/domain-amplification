@@ -15,6 +15,7 @@ import isLight from "./is-light";
 import root from "./root";
 import scroll from "./scroll";
 import store from "./store";
+import whitelist from "./whitelist";
 
 export type HTMLElementExtended = HTMLElement & {
   [invertedPropName]?: boolean;
@@ -42,6 +43,7 @@ type LifeCycle = Common & {
 export type MiddlewareParams = Update | LifeCycle;
 
 export const runMiddleware = createMiddleware([
+  whitelist,
   store,
   isDocument,
   isEmbedded,
