@@ -34,7 +34,7 @@ export default async function (params: MiddlewareParams) {
       if (element.isConnected) {
         if (checkInsideInverted(element)) break;
         const inverted = await handleElement(element, $isEnabled);
-        return { ...params, inverted };
+        return { ...params, isInverted: inverted };
       } else {
         element[invertedPropName] = undefined;
         element[rulesPropName]?.forEach((rule) => sheet.removeRule(rule));

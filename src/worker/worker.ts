@@ -7,6 +7,7 @@ export default () => {
     const context = canvas.getContext("2d");
     const originalArea = [0, 0, bitmap.width, bitmap.height];
     const scaledArea = [0, 0, canvasW, canvasH];
+    context.imageSmoothingEnabled = false;
     context.drawImage(bitmap, ...originalArea, ...scaledArea);
     const { data: ctxData } = context.getImageData(0, 0, canvasW, canvasH);
 

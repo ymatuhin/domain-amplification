@@ -30,7 +30,7 @@ export default function (params: MiddlewareParams) {
       if (element.isConnected) {
         if (checkInsideInverted(element)) break;
         const inverted = handleElement(element);
-        return { ...params, inverted };
+        return { ...params, isInverted: inverted };
       } else {
         element[invertedPropName] = undefined;
         element[rulesPropName]?.forEach((rule) => sheet.removeRule(rule));
