@@ -1,3 +1,4 @@
+import { checkInsideIframe } from "shared/utils/check-inside-iframe";
 import { logger, rulesPropName } from "../config";
 import { checkIsScrollable } from "../dom/check-is-scrollable";
 import { getSelector } from "../dom/get-selector";
@@ -14,6 +15,8 @@ const elementsRule = sheet.makeRule(
 
 export default function (params: MiddlewareParams) {
   const { status, element, isInverted, isEmbedded } = params;
+
+  if (checkInsideIframe()) return params;
 
   switch (status) {
     case "start":
